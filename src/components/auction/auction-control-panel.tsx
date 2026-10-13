@@ -542,8 +542,8 @@ export function AuctionControlPanel({
                         Player Queue ({queuedPlayers.length} remaining)
                       </p>
                       {queuedPlayers.length > 0 ? (
-                        <div className="space-y-2">
-                          {queuedPlayers.slice(0, 5).map((ap) => (
+                        <div className="space-y-2 max-h-[28rem] overflow-y-auto pr-1">
+                          {queuedPlayers.map((ap) => (
                             <Button
                               key={ap.id}
                               variant="outline"
