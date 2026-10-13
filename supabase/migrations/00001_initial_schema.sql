@@ -224,7 +224,7 @@ CREATE TABLE overlay_configs (
   theme TEXT NOT NULL DEFAULT 'dark',
   configuration_json JSONB NOT NULL DEFAULT '{
     "panelPosition": "right",
-    "panelWidth": 220,
+    "panelWidth": 257,
     "panelHeight": 600,
     "panelBackground": "rgba(10, 10, 30, 0.92)",
     "accentColor": "#e94560",

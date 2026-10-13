@@ -84,18 +84,20 @@ export function OverlayRenderer({ initialState, overlayToken, auctionId }: Overl
         overflow: 'hidden',
       }}
     >
-      {/* Side Panel - positioned to fit ~240px right-side OBS space */}
+      {/* Side Panel - fills ~257px right-side OBS space, flush to right edge */}
       <div
         style={{
           position: 'absolute',
-          right: '10px',
-          bottom: '80px',
-          width: '220px',
+          right: '0px',
+          top: '0px',
+          bottom: '0px',
+          width: '257px',
           background: 'rgba(10, 10, 30, 0.92)',
-          borderRadius: '12px',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
           backdropFilter: 'blur(20px)',
           overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
           transition: prefersReducedMotion ? 'none' : 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
           opacity: state.phase === 'standby' && !state.current_player ? 0.6 : 1,
         }}
@@ -119,32 +121,34 @@ export function OverlayRenderer({ initialState, overlayToken, auctionId }: Overl
         {/* Tournament branding header */}
         <div
           style={{
-            padding: '10px 12px',
+            padding: '14px 16px',
             background: 'linear-gradient(135deg, #e94560 0%, #c92a4a 100%)',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px',
+            gap: '10px',
           }}
         >
           {state.tournament_logo && (
             <img
               src={state.tournament_logo}
               alt=""
-              style={{ width: '24px', height: '24px', borderRadius: '6px', objectFit: 'cover' }}
+              style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }}
             />
           )}
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: 'white', letterSpacing: '0.3px' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: 'white', letterSpacing: '0.3px' }}>
               {state.tournament_name || 'LOG OUT LEAGUE'}
             </div>
-            <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.7)' }}>
+            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)' }}>
               {state.auction_name}
             </div>
           </div>
         </div>
 
-        {/* Content based on phase */}
-        {renderPhaseContent(state, showAnimation, prefersReducedMotion)}
+        {/* Content based on phase — vertically centered in remaining space */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          {renderPhaseContent(state, showAnimation, prefersReducedMotion)}
+        </div>
       </div>
     </div>
   );
@@ -177,11 +181,11 @@ function renderPhaseContent(
 
 function StandbyContent({ state }: { state: OverlayPublicState }) {
   return (
-    <div style={{ padding: '24px 12px', textAlign: 'center' }}>
-      <div style={{ fontSize: '13px', fontWeight: 700, color: 'white', marginBottom: '6px' }}>
+    <div style={{ padding: '30px 16px', textAlign: 'center' }}>
+      <div style={{ fontSize: '15px', fontWeight: 700, color: 'white', marginBottom: '8px' }}>
         PLAYER AUCTION
       </div>
-      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>
+      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
         Waiting to begin...
       </div>
     </div>
@@ -198,7 +202,7 @@ function PlayerIntroContent({ state }: { state: OverlayPublicState }) {
       <div
         style={{
           width: '100%',
-          height: '140px',
+          height: '180px',
           background: 'linear-gradient(180deg, rgba(20,20,40,0.3) 0%, rgba(10,10,30,1) 100%)',
           display: 'flex',
           alignItems: 'center',
@@ -211,9 +215,9 @@ function PlayerIntroContent({ state }: { state: OverlayPublicState }) {
             src={player.photo_url}
             alt={player.name}
             style={{
-              width: '110px',
-              height: '110px',
-              borderRadius: '12px',
+              width: '140px',
+              height: '140px',
+              borderRadius: '14px',
               objectFit: 'cover',
               border: '2px solid rgba(255,255,255,0.1)',
             }}
@@ -221,15 +225,15 @@ function PlayerIntroContent({ state }: { state: OverlayPublicState }) {
         ) : (
           <div
             style={{
-              width: '110px',
-              height: '110px',
-              borderRadius: '12px',
+              width: '140px',
+              height: '140px',
+              borderRadius: '14px',
               background: 'rgba(255,255,255,0.05)',
               border: '2px solid rgba(255,255,255,0.1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '40px',
+              fontSize: '48px',
               color: 'rgba(255,255,255,0.15)',
             }}
           >
@@ -239,23 +243,23 @@ function PlayerIntroContent({ state }: { state: OverlayPublicState }) {
       </div>
 
       {/* Player info */}
-      <div style={{ padding: '12px' }}>
-        <div style={{ fontSize: '15px', fontWeight: 800, color: 'white', marginBottom: '2px' }}>
+      <div style={{ padding: '16px' }}>
+        <div style={{ fontSize: '17px', fontWeight: 800, color: 'white', marginBottom: '3px' }}>
           {player.display_name}
         </div>
         {player.jersey_number && (
-          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
             #{player.jersey_number}
           </span>
         )}
-        <div style={{ marginTop: '6px' }}>
+        <div style={{ marginTop: '8px' }}>
           <span
             style={{
               display: 'inline-block',
-              padding: '3px 8px',
-              borderRadius: '12px',
+              padding: '4px 10px',
+              borderRadius: '14px',
               background: 'rgba(255,255,255,0.08)',
-              fontSize: '10px',
+              fontSize: '11px',
               color: 'rgba(255,255,255,0.7)',
               fontWeight: 600,
             }}
@@ -263,11 +267,11 @@ function PlayerIntroContent({ state }: { state: OverlayPublicState }) {
             {getRoleLabel(player.role)}
           </span>
         </div>
-        <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', marginBottom: '3px', letterSpacing: '1px' }}>
+        <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginBottom: '4px', letterSpacing: '1px' }}>
             BASE PRICE
           </div>
-          <div style={{ fontSize: '18px', fontWeight: 800, color: '#e94560' }}>
+          <div style={{ fontSize: '22px', fontWeight: 800, color: '#e94560' }}>
             {formatCurrency(player.base_price, state.currency_code)}
           </div>
         </div>
@@ -283,12 +287,12 @@ function BiddingContent({ state }: { state: OverlayPublicState }) {
   return (
     <div style={{ padding: '0' }}>
       {/* Compact player section */}
-      <div style={{ padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <div
           style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '8px',
+            width: '48px',
+            height: '48px',
+            borderRadius: '10px',
             background: 'rgba(255,255,255,0.05)',
             border: '2px solid rgba(255,255,255,0.1)',
             display: 'flex',
@@ -301,14 +305,14 @@ function BiddingContent({ state }: { state: OverlayPublicState }) {
           {player.photo_url ? (
             <img src={player.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            <span style={{ fontSize: '18px', opacity: 0.3 }}>👤</span>
+            <span style={{ fontSize: '22px', opacity: 0.3 }}>👤</span>
           )}
         </div>
         <div>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: 'white' }}>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: 'white' }}>
             {player.display_name}
           </div>
-          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)' }}>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>
             {getRoleLabel(player.role)}
             {player.jersey_number && ` • #${player.jersey_number}`}
           </div>
@@ -318,31 +322,31 @@ function BiddingContent({ state }: { state: OverlayPublicState }) {
       {/* Current bid - prominent */}
       <div
         style={{
-          padding: '12px',
+          padding: '16px',
           background: 'rgba(0,200,100,0.06)',
           borderTop: '1px solid rgba(255,255,255,0.04)',
           borderBottom: '1px solid rgba(255,255,255,0.04)',
         }}
       >
-        <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1.5px', marginBottom: '4px' }}>
+        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1.5px', marginBottom: '5px' }}>
           CURRENT BID
         </div>
-        <div style={{ fontSize: '24px', fontWeight: 900, color: '#4ade80', lineHeight: 1.1 }}>
+        <div style={{ fontSize: '28px', fontWeight: 900, color: '#4ade80', lineHeight: 1.1 }}>
           {formatCurrency(state.current_bid ?? player.base_price, state.currency_code)}
         </div>
       </div>
 
       {/* Leading team */}
       {state.current_team && (
-        <div style={{ padding: '10px 12px' }}>
-          <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1.5px', marginBottom: '6px' }}>
+        <div style={{ padding: '14px 16px' }}>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1.5px', marginBottom: '8px' }}>
             LEADING BID
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div
               style={{
-                width: '30px',
-                height: '30px',
+                width: '36px',
+                height: '36px',
                 borderRadius: '8px',
                 background: state.current_team.primary_color,
                 display: 'flex',
@@ -355,12 +359,12 @@ function BiddingContent({ state }: { state: OverlayPublicState }) {
               {state.current_team.logo_url ? (
                 <img src={state.current_team.logo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <span style={{ fontSize: '10px', fontWeight: 800, color: state.current_team.secondary_color }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: state.current_team.secondary_color }}>
                   {state.current_team.short_name.slice(0, 2)}
                 </span>
               )}
             </div>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: 'white' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'white' }}>
               {state.current_team.name}
             </div>
           </div>
@@ -370,23 +374,23 @@ function BiddingContent({ state }: { state: OverlayPublicState }) {
       {/* Live indicator */}
       <div
         style={{
-          padding: '6px 12px',
+          padding: '8px 16px',
           display: 'flex',
           alignItems: 'center',
-          gap: '5px',
+          gap: '6px',
           justifyContent: 'center',
         }}
       >
         <div
           style={{
-            width: '5px',
-            height: '5px',
+            width: '6px',
+            height: '6px',
             borderRadius: '50%',
             backgroundColor: '#ef4444',
             animation: 'pulse 1.5s infinite',
           }}
         />
-        <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', fontWeight: 700 }}>
+        <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '2px', fontWeight: 700 }}>
           LIVE BIDDING
         </span>
       </div>
@@ -414,35 +418,35 @@ function SoldContent({ state, showAnimation }: { state: OverlayPublicState; show
       {/* SOLD banner */}
       <div
         style={{
-          padding: '12px',
+          padding: '16px',
           background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
           textAlign: 'center',
         }}
       >
-        <div style={{ fontSize: '20px', fontWeight: 900, color: 'white', letterSpacing: '3px' }}>
+        <div style={{ fontSize: '24px', fontWeight: 900, color: 'white', letterSpacing: '4px' }}>
           SOLD!
         </div>
       </div>
 
       {/* Player */}
-      <div style={{ padding: '14px 12px', textAlign: 'center' }}>
-        <div style={{ fontSize: '14px', fontWeight: 700, color: 'white', marginBottom: '8px' }}>
+      <div style={{ padding: '18px 16px', textAlign: 'center' }}>
+        <div style={{ fontSize: '16px', fontWeight: 700, color: 'white', marginBottom: '10px' }}>
           {state.current_player.display_name}
         </div>
 
         {/* Final price */}
-        <div style={{ fontSize: '22px', fontWeight: 900, color: '#4ade80', marginBottom: '12px' }}>
+        <div style={{ fontSize: '26px', fontWeight: 900, color: '#4ade80', marginBottom: '16px' }}>
           {formatCurrency(state.final_price ?? state.current_bid ?? 0, state.currency_code)}
         </div>
 
         {/* Winning team */}
         {state.current_team && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
             <div
               style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
+                width: '38px',
+                height: '38px',
+                borderRadius: '10px',
                 background: state.current_team.primary_color,
                 display: 'flex',
                 alignItems: 'center',
@@ -453,12 +457,12 @@ function SoldContent({ state, showAnimation }: { state: OverlayPublicState; show
               {state.current_team.logo_url ? (
                 <img src={state.current_team.logo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
-                <span style={{ fontSize: '11px', fontWeight: 800, color: state.current_team.secondary_color }}>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: state.current_team.secondary_color }}>
                   {state.current_team.short_name.slice(0, 2)}
                 </span>
               )}
             </div>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: 'white' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'white' }}>
               {state.current_team.name}
             </div>
           </div>
@@ -488,21 +492,21 @@ function UnsoldContent({ state, showAnimation }: { state: OverlayPublicState; sh
       {/* UNSOLD banner */}
       <div
         style={{
-          padding: '12px',
+          padding: '16px',
           background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
           textAlign: 'center',
         }}
       >
-        <div style={{ fontSize: '20px', fontWeight: 900, color: 'white', letterSpacing: '3px' }}>
+        <div style={{ fontSize: '24px', fontWeight: 900, color: 'white', letterSpacing: '4px' }}>
           UNSOLD
         </div>
       </div>
 
-      <div style={{ padding: '20px 12px', textAlign: 'center' }}>
-        <div style={{ fontSize: '14px', fontWeight: 700, color: 'white', marginBottom: '6px' }}>
+      <div style={{ padding: '24px 16px', textAlign: 'center' }}>
+        <div style={{ fontSize: '16px', fontWeight: 700, color: 'white', marginBottom: '8px' }}>
           {state.current_player.display_name}
         </div>
-        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>
+        <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
           Base Price: {formatCurrency(state.current_player.base_price, state.currency_code)}
         </div>
       </div>
@@ -519,11 +523,11 @@ function UnsoldContent({ state, showAnimation }: { state: OverlayPublicState; sh
 
 function PausedContent({ state }: { state: OverlayPublicState }) {
   return (
-    <div style={{ padding: '24px 12px', textAlign: 'center' }}>
-      <div style={{ fontSize: '16px', fontWeight: 800, color: '#f59e0b', letterSpacing: '2px' }}>
+    <div style={{ padding: '30px 16px', textAlign: 'center' }}>
+      <div style={{ fontSize: '20px', fontWeight: 800, color: '#f59e0b', letterSpacing: '3px' }}>
         BREAK
       </div>
-      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '6px' }}>
+      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '8px' }}>
         Auction paused — will resume shortly
       </div>
     </div>
@@ -532,14 +536,14 @@ function PausedContent({ state }: { state: OverlayPublicState }) {
 
 function CompletedContent({ state }: { state: OverlayPublicState }) {
   return (
-    <div style={{ padding: '24px 12px', textAlign: 'center' }}>
-      <div style={{ fontSize: '15px', fontWeight: 800, color: '#4ade80', letterSpacing: '1.5px' }}>
+    <div style={{ padding: '30px 16px', textAlign: 'center' }}>
+      <div style={{ fontSize: '18px', fontWeight: 800, color: '#4ade80', letterSpacing: '2px' }}>
         AUCTION COMPLETE
       </div>
-      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginTop: '8px' }}>
+      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '10px' }}>
         {state.tournament_name}
       </div>
-      <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '3px' }}>
+      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>
         Thank you for watching!
       </div>
     </div>
