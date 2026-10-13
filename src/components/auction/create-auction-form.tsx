@@ -30,7 +30,7 @@ export function CreateAuctionForm({ tournamentId, tournamentName }: CreateAuctio
     resolver: zodResolver(auctionSchema),
     defaultValues: {
       currency_code: 'INR',
-      default_bid_increment: 100000,
+      default_bid_increment: 1,
     },
   });
 
@@ -79,7 +79,7 @@ export function CreateAuctionForm({ tournamentId, tournamentName }: CreateAuctio
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Default Bid Increment (₹)</Label>
+              <Label className="text-slate-300">Default Bid Increment</Label>
               <Input
                 type="number"
                 {...register('default_bid_increment', { valueAsNumber: true })}

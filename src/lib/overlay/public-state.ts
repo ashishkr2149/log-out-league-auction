@@ -73,7 +73,7 @@ export async function getOverlayPublicState(
   if (auction.current_bid_team_id) {
     const { data: team } = await supabase
       .from('teams')
-      .select('name, short_name, logo_path, primary_color, secondary_color')
+      .select('name, short_name, captain_name, logo_path, primary_color, secondary_color')
       .eq('id', auction.current_bid_team_id)
       .single();
 
@@ -81,6 +81,7 @@ export async function getOverlayPublicState(
       currentTeam = {
         name: team.name,
         short_name: team.short_name,
+        captain_name: team.captain_name,
         logo_url: team.logo_path
           ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/team-logos/${team.logo_path}`
           : null,

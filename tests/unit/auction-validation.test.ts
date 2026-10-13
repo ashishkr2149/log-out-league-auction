@@ -14,6 +14,7 @@ function makeTeam(overrides: Partial<TeamWithStats> = {}): TeamWithStats {
     tournament_id: 'tournament-1',
     name: 'Royal Strikers',
     short_name: 'RST',
+    captain_name: null,
     logo_path: null,
     primary_color: '#3498db',
     secondary_color: '#ffffff',

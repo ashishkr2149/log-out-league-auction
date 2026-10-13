@@ -80,7 +80,7 @@ export function OverlayRenderer({ initialState, overlayToken, auctionId }: Overl
         height: '1080px',
         position: 'relative',
         background: 'transparent',
-        fontFamily: "'Inter', 'Segoe UI', system-ui, sans-serif",
+        fontFamily: "'Outfit', 'Space Grotesk', 'Segoe UI', system-ui, sans-serif",
         overflow: 'hidden',
       }}
     >

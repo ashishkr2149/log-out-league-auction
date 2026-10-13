@@ -57,6 +57,7 @@ export interface Team {
   tournament_id: string;
   name: string;
   short_name: string;
+  captain_name: string | null;
   logo_path: string | null;
   primary_color: string;
   secondary_color: string;
@@ -247,6 +248,7 @@ export interface OverlayPublicState {
   current_team: {
     name: string;
     short_name: string;
+    captain_name: string | null;
     logo_url: string | null;
     primary_color: string;
     secondary_color: string;

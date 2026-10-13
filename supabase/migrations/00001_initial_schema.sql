@@ -44,10 +44,11 @@ CREATE TABLE teams (
   tournament_id UUID NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   short_name TEXT NOT NULL,
+  captain_name TEXT,
   logo_path TEXT,
   primary_color TEXT NOT NULL DEFAULT '#3498db',
   secondary_color TEXT NOT NULL DEFAULT '#ffffff',
-  initial_purse INTEGER NOT NULL DEFAULT 10000000
+  initial_purse INTEGER NOT NULL DEFAULT 100
     CHECK (initial_purse > 0),
   max_roster_size INTEGER NOT NULL DEFAULT 15
     CHECK (max_roster_size > 0),
@@ -102,7 +103,7 @@ CREATE TABLE auctions (
   status TEXT NOT NULL DEFAULT 'draft'
     CHECK (status IN ('draft', 'ready', 'live', 'paused', 'completed', 'cancelled')),
   currency_code TEXT NOT NULL DEFAULT 'INR',
-  default_bid_increment INTEGER NOT NULL DEFAULT 100000
+  default_bid_increment INTEGER NOT NULL DEFAULT 1
     CHECK (default_bid_increment > 0),
   current_player_id UUID REFERENCES players(id),
   current_bid_amount INTEGER,

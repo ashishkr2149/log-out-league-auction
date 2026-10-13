@@ -32,7 +32,7 @@ export function CreateTeamDialog({ tournamentId }: CreateTeamDialogProps) {
     defaultValues: {
       primary_color: '#3498db',
       secondary_color: '#ffffff',
-      initial_purse: 10000000,
+      initial_purse: 100,
       max_roster_size: 15,
     },
   });
@@ -93,6 +93,14 @@ export function CreateTeamDialog({ tournamentId }: CreateTeamDialogProps) {
             />
             {errors.short_name && <p className="text-sm text-red-400">{errors.short_name.message}</p>}
           </div>
+          <div className="space-y-2">
+            <Label className="text-slate-300">Captain Name</Label>
+            <Input
+              {...register('captain_name')}
+              placeholder="e.g., Virat Kohli"
+              className="border-slate-700 bg-slate-800 text-white"
+            />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-slate-300">Primary Color</Label>
@@ -112,7 +120,7 @@ export function CreateTeamDialog({ tournamentId }: CreateTeamDialogProps) {
             </div>
           </div>
           <div className="space-y-2">
-            <Label className="text-slate-300">Initial Purse (₹) *</Label>
+            <Label className="text-slate-300">Initial Purse *</Label>
             <Input
               type="number"
               {...register('initial_purse', { valueAsNumber: true })}

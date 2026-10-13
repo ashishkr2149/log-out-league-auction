@@ -59,11 +59,17 @@ export function validateBidIncrement(
 
 /**
  * Format currency amount for display.
- * Uses whole rupees for INR.
+ * For small values (< 1000), display as simple numbers.
+ * For larger INR values, use Indian number formatting.
  */
 export function formatCurrency(amount: number, currency: string = 'INR'): string {
+  if (currency === 'PTS' || currency === 'pts') {
+    return amount.toLocaleString() + ' pts';
+  }
   if (currency === 'INR') {
-    // Indian number formatting with lakhs/crores
+    if (amount < 1000) {
+      return '₹' + amount.toLocaleString();
+    }
     return '₹' + formatIndianNumber(amount);
   }
   return new Intl.NumberFormat('en-US', {
