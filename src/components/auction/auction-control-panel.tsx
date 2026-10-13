@@ -181,6 +181,16 @@ export function AuctionControlPanel({
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <Link href={`/dashboard/auctions/${initialAuction.id}/settings`}>
+            <Button variant="outline" size="sm" className="border-slate-700 text-slate-300">
+              Settings
+            </Button>
+          </Link>
+          <Link href={`/dashboard/auctions/${initialAuction.id}/overlay-preview`}>
+            <Button variant="outline" size="sm" className="border-slate-700 text-slate-300">
+              Overlay
+            </Button>
+          </Link>
           {connected ? (
             <Badge variant="outline" className="border-green-600 text-green-400">
               <Wifi className="mr-1 h-3 w-3" />

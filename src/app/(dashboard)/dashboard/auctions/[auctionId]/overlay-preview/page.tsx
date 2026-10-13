@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ExternalLink, Copy } from 'lucide-react';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
 
@@ -22,19 +22,16 @@ export default async function OverlayPreviewPage({ params }: Props) {
 
   if (!auction) notFound();
 
-  // Get active overlay credentials
+  // Active credentials exist, but the raw token is only shown once at generation time.
   const { data: credentials } = await supabase
     .from('overlay_credentials')
-    .select('*')
+    .select('id, label, is_active, created_at')
     .eq('auction_id', auctionId)
     .eq('is_active', true)
     .order('created_at', { ascending: false })
     .limit(1);
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const overlayUrl = credentials?.[0]
-    ? `${appUrl}/overlay/${credentials[0].credential_hash}` // Note: actual token needed, not hash
-    : null;
+  const hasCredential = Boolean(credentials?.[0]);
 
   return (
     <div className="space-y-6">
@@ -59,36 +56,33 @@ export default async function OverlayPreviewPage({ params }: Props) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {overlayUrl ? (
-            <div className="space-y-4">
-              <div className="rounded-lg border border-slate-700 bg-black p-2">
-                <div
-                  className="relative bg-slate-950"
-                  style={{ paddingBottom: '56.25%' }}
-                >
-                  <iframe
-                    src={overlayUrl}
-                    className="absolute inset-0 w-full h-full"
-                    style={{ border: 'none' }}
-                  />
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <code className="flex-1 rounded-lg bg-slate-800 px-4 py-2 text-sm text-slate-300 font-mono truncate">
-                  {overlayUrl}
-                </code>
-                <Button variant="outline" className="border-slate-700 text-slate-300 shrink-0">
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copy URL
+          {hasCredential ? (
+            <div className="space-y-4 text-center py-6">
+              <p className="text-slate-300">
+                An active overlay credential exists for this auction.
+              </p>
+              <p className="text-sm text-slate-500">
+                The full overlay URL is only shown once when you generate it.
+                Open Settings to create a new credential if you no longer have the URL.
+              </p>
+              <Link href={`/dashboard/auctions/${auctionId}/settings`}>
+                <Button variant="outline" className="border-slate-700 text-slate-300">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Open Auction Settings
                 </Button>
-              </div>
+              </Link>
             </div>
           ) : (
-            <div className="text-center py-8">
+            <div className="text-center py-8 space-y-3">
               <p className="text-slate-500">No overlay credential generated yet.</p>
-              <p className="text-sm text-slate-600 mt-2">
-                Generate an overlay credential from the auction settings to preview the overlay.
+              <p className="text-sm text-slate-600">
+                Generate an overlay credential from auction settings to get your OBS URL.
               </p>
+              <Link href={`/dashboard/auctions/${auctionId}/settings`}>
+                <Button className="bg-red-600 hover:bg-red-700 text-white">
+                  Generate Overlay URL
+                </Button>
+              </Link>
             </div>
           )}
         </CardContent>

@@ -86,3 +86,31 @@ export async function updateAuctionSettings(
   revalidatePath(`/dashboard/auctions/${auctionId}/settings`);
   return { success: true };
 }
+
+export async function generateOverlayCredentialAction(
+  auctionId: string,
+  label: string = 'OBS Browser Source'
+) {
+  await requireUser();
+
+  try {
+    const { createOverlayCredential } = await import('@/lib/overlay/credentials');
+    const credential = await createOverlayCredential(auctionId, label);
+
+    revalidatePath(`/dashboard/auctions/${auctionId}/settings`);
+    revalidatePath(`/dashboard/auctions/${auctionId}/overlay-preview`);
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    return {
+      success: true,
+      token: credential.token,
+      overlayUrl: `${appUrl}/overlay/${credential.token}`,
+      label: credential.label,
+      id: credential.id,
+    };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : 'Failed to generate overlay credential',
+    };
+  }
+}

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/auction/validation';
+import { GenerateOverlayCredential } from '@/components/auction/generate-overlay-credential';
 
 
 interface Props {
@@ -86,30 +87,31 @@ export default async function AuctionSettingsPage({ params }: Props) {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {credentials && credentials.length > 0 ? (
-              credentials.map((cred) => (
-                <div
-                  key={cred.id}
-                  className="rounded-lg border border-slate-800 bg-slate-800/40 p-3 space-y-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-white">{cred.label}</span>
-                    <Badge
-                      variant="outline"
-                      className={cred.is_active ? 'border-green-600 text-green-400' : 'border-red-600 text-red-400'}
-                    >
-                      {cred.is_active ? 'Active' : 'Revoked'}
-                    </Badge>
+            <GenerateOverlayCredential auctionId={auctionId} />
+
+            {credentials && credentials.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-slate-800">
+                <p className="text-xs text-slate-500 uppercase tracking-wide">Existing credentials</p>
+                {credentials.map((cred) => (
+                  <div
+                    key={cred.id}
+                    className="rounded-lg border border-slate-800 bg-slate-800/40 p-3 space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-white">{cred.label}</span>
+                      <Badge
+                        variant="outline"
+                        className={cred.is_active ? 'border-green-600 text-green-400' : 'border-red-600 text-red-400'}
+                      >
+                        {cred.is_active ? 'Active' : 'Revoked'}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      Created {new Date(cred.created_at).toLocaleString()}
+                    </p>
                   </div>
-                  <p className="text-xs text-slate-500">
-                    Created {new Date(cred.created_at).toLocaleString()}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-slate-500">
-                No overlay credentials yet. Generate one from the auction control panel.
-              </p>
+                ))}
+              </div>
             )}
             <p className="text-xs text-slate-600">
               Overlay URL format: {appUrl}/overlay/[token]

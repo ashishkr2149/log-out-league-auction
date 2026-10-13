@@ -127,4 +127,8 @@
   html {
     @apply font-sans;
   }
+  /* OBS Browser Source needs a fully transparent page chrome */
+  body:has([data-auction-overlay]) {
+    background: transparent !important;
+  }
 }
