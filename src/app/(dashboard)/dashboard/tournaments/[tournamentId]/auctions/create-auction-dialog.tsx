@@ -6,25 +6,34 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { auctionSchema, AuctionFormData } from '@/lib/validation/schemas';
 import { createAuction } from '@/app/(dashboard)/dashboard/auctions/actions';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface CreateAuctionFormProps {
+interface CreateAuctionDialogProps {
   tournamentId: string;
   tournamentName: string;
 }
 
-export function CreateAuctionForm({ tournamentId, tournamentName }: CreateAuctionFormProps) {
+export function CreateAuctionDialog({ tournamentId, tournamentName }: CreateAuctionDialogProps) {
+  const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<AuctionFormData>({
     resolver: zodResolver(auctionSchema),
@@ -42,8 +51,11 @@ export function CreateAuctionForm({ tournamentId, tournamentName }: CreateAuctio
         toast.error(result.error);
         return;
       }
-      toast.success('Auction created successfully');
+      toast.success('Auction created');
+      setOpen(false);
+      reset({ name: '', currency_code: 'INR', default_bid_increment: 1 });
       router.push(`/dashboard/auctions/${result.auctionId}/control`);
+      router.refresh();
     } catch {
       toast.error('Failed to create auction');
     } finally {
@@ -52,14 +64,20 @@ export function CreateAuctionForm({ tournamentId, tournamentName }: CreateAuctio
   }
 
   return (
-    <Card className="border-slate-800 bg-slate-900/80 max-w-lg">
-      <CardHeader>
-        <CardTitle className="text-white">Create New Auction</CardTitle>
-        <CardDescription className="text-slate-400">
-          For {tournamentName}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        render={<Button className="bg-red-600 hover:bg-red-700 text-white" />}
+      >
+        <Plus className="mr-2 h-4 w-4" />
+        New Auction
+      </DialogTrigger>
+      <DialogContent className="border-slate-800 bg-slate-900 max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-white">Create New Auction</DialogTitle>
+          <DialogDescription className="text-slate-400">
+            For {tournamentName}. All registered players will be queued automatically.
+          </DialogDescription>
+        </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label className="text-slate-300">Auction Name *</Label>
@@ -79,7 +97,7 @@ export function CreateAuctionForm({ tournamentId, tournamentName }: CreateAuctio
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Default Bid Increment</Label>
+              <Label className="text-slate-300">Bid Increment</Label>
               <Input
                 type="number"
                 {...register('default_bid_increment', { valueAsNumber: true })}
@@ -87,16 +105,26 @@ export function CreateAuctionForm({ tournamentId, tournamentName }: CreateAuctio
               />
             </div>
           </div>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-red-600 hover:bg-red-700 text-white"
-          >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Auction & Add All Players
-          </Button>
+          <div className="flex gap-3 pt-1">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Create Auction
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              className="border-slate-700 text-slate-300"
+            >
+              Cancel
+            </Button>
+          </div>
         </form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }

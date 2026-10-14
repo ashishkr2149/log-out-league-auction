@@ -64,6 +64,7 @@ export async function createAuction(tournamentId: string, data: AuctionFormData)
   }
 
   revalidatePath(`/dashboard/tournaments/${tournamentId}`);
+  revalidatePath(`/dashboard/tournaments/${tournamentId}/auctions`);
   return { success: true, auctionId: auction.id };
 }
 
