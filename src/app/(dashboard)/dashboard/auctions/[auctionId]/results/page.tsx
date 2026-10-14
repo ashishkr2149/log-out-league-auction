@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Download, Trophy } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency, getRoleLabel, getEffectiveRosterCount } from '@/lib/auction/validation';
 
@@ -72,55 +72,71 @@ export default async function AuctionResultsPage({ params }: Props) {
   const soldPlayers = (auctionPlayers ?? []).filter((ap) => ap.status === 'sold');
   const unsoldPlayers = (auctionPlayers ?? []).filter((ap) => ap.status === 'unsold');
   const totalSpending = soldPlayers.reduce((sum, ap) => sum + (ap.final_sale_price ?? 0), 0);
-  const avgPrice = soldPlayers.length > 0 ? Math.round(totalSpending / soldPlayers.length) : 0;
   const highestPrice = soldPlayers.reduce((max, ap) => Math.max(max, ap.final_sale_price ?? 0), 0);
 
   const tournament = auction.tournament as unknown as { id: string; name: string };
   const currency = auction.currency_code || 'PTS';
   const money = (amount: number) => formatCurrency(amount, currency);
 
+  const summaryStats = [
+    {
+      shortLabel: 'Players',
+      label: 'Total Players',
+      value: String(auctionPlayers?.length ?? 0),
+      color: 'text-white',
+    },
+    {
+      shortLabel: 'Sold',
+      label: 'Players Sold',
+      value: String(soldPlayers.length),
+      color: 'text-green-400',
+    },
+    {
+      shortLabel: 'Spent',
+      label: 'Total Spending',
+      value: money(totalSpending),
+      color: 'text-white',
+    },
+    {
+      shortLabel: 'Top',
+      label: 'Highest Price',
+      value: money(highestPrice),
+      color: 'text-yellow-400',
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href={`/dashboard/auctions/${auctionId}/control`}>
-            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-white">Auction Results</h1>
-            <p className="mt-1 text-slate-400">{auction.name} — {tournament?.name}</p>
-          </div>
+      <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+        <Link href={`/dashboard/auctions/${auctionId}/control`}>
+          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white shrink-0">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Auction Results</h1>
+          <p className="mt-1 text-slate-400 truncate">
+            {auction.name}
+            {tournament?.name ? ` · ${tournament.name}` : ''}
+          </p>
         </div>
       </div>
 
-      {/* Summary Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-slate-800 bg-slate-900/80">
-          <CardContent className="p-6">
-            <p className="text-sm text-slate-400">Total Players</p>
-            <p className="text-2xl font-bold text-white">{auctionPlayers?.length ?? 0}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-800 bg-slate-900/80">
-          <CardContent className="p-6">
-            <p className="text-sm text-slate-400">Players Sold</p>
-            <p className="text-2xl font-bold text-green-400">{soldPlayers.length}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-800 bg-slate-900/80">
-          <CardContent className="p-6">
-            <p className="text-sm text-slate-400">Total Spending</p>
-            <p className="text-2xl font-bold text-white">{money(totalSpending)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-800 bg-slate-900/80">
-          <CardContent className="p-6">
-            <p className="text-sm text-slate-400">Highest Price</p>
-            <p className="text-2xl font-bold text-yellow-400">{money(highestPrice)}</p>
-          </CardContent>
-        </Card>
+      {/* Summary Stats — 4-up on all viewports */}
+      <div className="grid grid-cols-4 gap-2 sm:gap-3">
+        {summaryStats.map((stat) => (
+          <Card key={stat.label} className="border-slate-800 bg-slate-900/80">
+            <CardContent className="px-1.5 py-3 sm:p-4 text-center sm:text-left">
+              <p className="text-[10px] sm:text-xs text-slate-400 truncate">
+                <span className="sm:hidden">{stat.shortLabel}</span>
+                <span className="hidden sm:inline">{stat.label}</span>
+              </p>
+              <p className={`mt-1 text-sm sm:text-xl font-bold leading-tight ${stat.color}`}>
+                {stat.value}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Team Summary */}

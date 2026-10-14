@@ -35,43 +35,73 @@ export default async function DashboardPage() {
     .eq('status', 'sold');
 
   const stats = [
-    { label: 'Tournaments', value: tournaments?.length ?? 0, icon: Trophy, color: 'text-red-400' },
-    { label: 'Total Players', value: playerCount ?? 0, icon: Users, color: 'text-blue-400' },
-    { label: 'Total Teams', value: teamCount ?? 0, icon: UserCheck, color: 'text-green-400' },
-    { label: 'Auctions', value: auctionCount ?? 0, icon: Gavel, color: 'text-yellow-400' },
+    {
+      shortLabel: 'Events',
+      label: 'Tournaments',
+      value: tournaments?.length ?? 0,
+      icon: Trophy,
+      color: 'text-red-400',
+    },
+    {
+      shortLabel: 'Players',
+      label: 'Total Players',
+      value: playerCount ?? 0,
+      icon: Users,
+      color: 'text-blue-400',
+    },
+    {
+      shortLabel: 'Teams',
+      label: 'Total Teams',
+      value: teamCount ?? 0,
+      icon: UserCheck,
+      color: 'text-green-400',
+    },
+    {
+      shortLabel: 'Auctions',
+      label: 'Auctions',
+      value: auctionCount ?? 0,
+      icon: Gavel,
+      color: 'text-yellow-400',
+    },
   ];
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-          <p className="mt-1 text-slate-400">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Dashboard</h1>
+          <p className="mt-1 text-slate-400 truncate">
             Welcome back{user?.email ? `, ${user.email}` : ''}
           </p>
         </div>
         <Link href="/dashboard/tournaments/new">
-          <Button className="bg-red-600 hover:bg-red-700 text-white">
-            <Plus className="mr-2 h-4 w-4" />
-            New Tournament
+          <Button
+            className="bg-red-600 hover:bg-red-700 text-white size-9 sm:size-auto sm:h-10 sm:px-4 shrink-0"
+            aria-label="New Tournament"
+          >
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">New Tournament</span>
           </Button>
         </Link>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stats — 4-up; icon on top (mobile) / left (desktop) */}
+      <div className="grid grid-cols-4 gap-2 sm:gap-3">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
             <Card key={stat.label} className="border-slate-800 bg-slate-900/80">
-              <CardContent className="flex items-center gap-4 p-6">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-lg bg-slate-800 ${stat.color}`}>
-                  <Icon className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-400">{stat.label}</p>
-                  <p className="text-2xl font-bold text-white">{stat.value}</p>
+              <CardContent className="flex flex-col items-center justify-center gap-1.5 px-1.5 py-3 text-center sm:flex-row sm:items-center sm:justify-start sm:gap-3 sm:px-4 sm:py-4 sm:text-left">
+                <Icon className={`h-5 w-5 sm:h-7 sm:w-7 shrink-0 ${stat.color}`} />
+                <div className="min-w-0">
+                  <p className="text-[10px] sm:text-sm text-slate-400 leading-tight truncate">
+                    <span className="sm:hidden">{stat.shortLabel}</span>
+                    <span className="hidden sm:inline">{stat.label}</span>
+                  </p>
+                  <p className="text-lg sm:text-2xl font-bold text-white leading-none sm:mt-0.5">
+                    {stat.value}
+                  </p>
                 </div>
               </CardContent>
             </Card>

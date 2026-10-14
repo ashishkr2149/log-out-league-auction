@@ -258,14 +258,14 @@ export function DashboardHomeSkeleton() {
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-4 w-64" />
       </div>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-4 gap-2 sm:gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="border-slate-800 bg-slate-900/80">
-            <CardContent className="flex items-center gap-3 p-4">
-              <Skeleton className="h-7 w-7 rounded-md" />
-              <div className="space-y-1.5">
-                <Skeleton className="h-3 w-16" />
-                <Skeleton className="h-6 w-10" />
+            <CardContent className="flex flex-col items-center justify-center gap-2 px-1.5 py-3 text-center sm:flex-row sm:items-center sm:justify-start sm:gap-3 sm:px-4 sm:py-4 sm:text-left">
+              <Skeleton className="h-5 w-5 sm:h-7 sm:w-7 rounded-md shrink-0" />
+              <div className="space-y-1.5 flex flex-col items-center sm:items-start">
+                <Skeleton className="h-3 w-10 sm:w-14" />
+                <Skeleton className="h-5 w-8 sm:h-6 sm:w-10" />
               </div>
             </CardContent>
           </Card>

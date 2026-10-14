@@ -15,15 +15,18 @@ export default async function TournamentsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-white">Tournaments</h1>
-          <p className="mt-1 text-slate-400">Manage your cricket tournaments</p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Tournaments</h1>
+          <p className="mt-1 text-slate-400 truncate">Manage your cricket tournaments</p>
         </div>
         <Link href="/dashboard/tournaments/new">
-          <Button className="bg-red-600 hover:bg-red-700 text-white">
-            <Plus className="mr-2 h-4 w-4" />
-            New Tournament
+          <Button
+            className="bg-red-600 hover:bg-red-700 text-white size-9 sm:size-auto sm:h-10 sm:px-4 shrink-0"
+            aria-label="New Tournament"
+          >
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">New Tournament</span>
           </Button>
         </Link>
       </div>
