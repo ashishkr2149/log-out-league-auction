@@ -3,6 +3,7 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/auth/permissions';
 import { isValidTransition } from '@/lib/auction/state';
+import { getCaptainSlot } from '@/lib/auction/validation';
 import {
   AuctionStatus,
   AuctionPhase,
@@ -365,8 +366,8 @@ export async function placeBid(
     .eq('team_id', teamId)
     .eq('tournament_id', auction.tournament_id);
 
-  if ((rosterCount ?? 0) >= team.max_roster_size) {
-    return { error: `${team.name} has reached maximum roster size` };
+  if ((rosterCount ?? 0) + getCaptainSlot(team) >= team.max_roster_size) {
+    return { error: `${team.name} has a full roster (including captain)` };
   }
 
   // Get auction player for bid history
@@ -484,8 +485,8 @@ export async function sellPlayer(
     .eq('team_id', teamId)
     .eq('tournament_id', auction.tournament_id);
 
-  if ((rosterCount ?? 0) >= team.max_roster_size) {
-    return { error: `${team.name} has reached maximum roster size` };
+  if ((rosterCount ?? 0) + getCaptainSlot(team) >= team.max_roster_size) {
+    return { error: `${team.name} has a full roster (including captain)` };
   }
 
   // Get auction player

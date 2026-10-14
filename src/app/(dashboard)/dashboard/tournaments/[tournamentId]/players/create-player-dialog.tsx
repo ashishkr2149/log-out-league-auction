@@ -36,7 +36,7 @@ export function CreatePlayerDialog({ tournamentId }: CreatePlayerDialogProps) {
     resolver: zodResolver(playerSchema),
     defaultValues: {
       role: 'other',
-      base_price: 100000,
+      base_price: 1,
     },
   });
 
@@ -168,7 +168,7 @@ export function CreatePlayerDialog({ tournamentId }: CreatePlayerDialogProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Base Price (₹) *</Label>
+              <Label className="text-slate-300">Base Price *</Label>
               <Input
                 type="number"
                 {...register('base_price', { valueAsNumber: true })}

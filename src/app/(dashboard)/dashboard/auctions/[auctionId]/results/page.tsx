@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, Trophy } from 'lucide-react';
 import Link from 'next/link';
-import { formatCurrency, getRoleLabel } from '@/lib/auction/validation';
+import { formatCurrency, getRoleLabel, getEffectiveRosterCount } from '@/lib/auction/validation';
 
 
 interface Props {
@@ -159,8 +159,15 @@ export default async function AuctionResultsPage({ params }: Props) {
                   <TableCell className="text-white">{money(team.initial_purse)}</TableCell>
                   <TableCell className="text-red-400">{money(team.spent)}</TableCell>
                   <TableCell className="text-green-400 font-bold">{money(team.remaining_purse)}</TableCell>
-                  <TableCell className="text-white">{team.roster_count}</TableCell>
-                  <TableCell className="text-slate-400">{team.max_roster_size - team.roster_count}</TableCell>
+                  <TableCell className="text-white">
+                    {getEffectiveRosterCount(team)}
+                    <span className="text-slate-500 text-xs ml-1">
+                      ({team.roster_count} bought{team.captain_name ? ' + C' : ''})
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-slate-400">
+                    {Math.max(0, team.max_roster_size - getEffectiveRosterCount(team))}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

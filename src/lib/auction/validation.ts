@@ -4,6 +4,28 @@ import { TeamWithStats } from '@/types/database';
  * Validate that a team can accept a bid of the given amount.
  * Returns null if valid, or an error message string.
  */
+/** Captain fills one roster slot (not purchased via auction). */
+export function getCaptainSlot(team: { captain_name?: string | null }): number {
+  return team.captain_name?.trim() ? 1 : 0;
+}
+
+/** Purchased players + captain (if set). */
+export function getEffectiveRosterCount(team: {
+  roster_count: number;
+  captain_name?: string | null;
+}): number {
+  return team.roster_count + getCaptainSlot(team);
+}
+
+/** Remaining slots that can still be filled via auction. */
+export function getAuctionSlotsRemaining(team: {
+  roster_count: number;
+  max_roster_size: number;
+  captain_name?: string | null;
+}): number {
+  return Math.max(0, team.max_roster_size - getEffectiveRosterCount(team));
+}
+
 export function validateBidEligibility(
   team: TeamWithStats,
   bidAmount: number,
@@ -14,15 +36,15 @@ export function validateBidEligibility(
   }
 
   if (bidAmount < basePrice) {
-    return `Bid ₹${bidAmount.toLocaleString()} is below base price ₹${basePrice.toLocaleString()}`;
+    return `Bid ${bidAmount.toLocaleString()} is below base price ${basePrice.toLocaleString()}`;
   }
 
   if (bidAmount > team.remaining_purse) {
-    return `${team.name} has insufficient funds. Remaining: ₹${team.remaining_purse.toLocaleString()}, Bid: ₹${bidAmount.toLocaleString()}`;
+    return `${team.name} has insufficient funds. Remaining: ${team.remaining_purse.toLocaleString()}, Bid: ${bidAmount.toLocaleString()}`;
   }
 
-  if (team.roster_count >= team.max_roster_size) {
-    return `${team.name} has reached maximum roster size (${team.max_roster_size})`;
+  if (getAuctionSlotsRemaining(team) <= 0) {
+    return `${team.name} has a full roster (${team.max_roster_size}, including captain)`;
   }
 
   return null;

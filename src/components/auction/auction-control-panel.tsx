@@ -14,7 +14,13 @@ import {
   undoLastBid,
   type AuctionActionResult,
 } from '@/lib/auction/actions';
-import { formatCurrency, getRoleLabel, getAuctionStatusLabel } from '@/lib/auction/validation';
+import {
+  formatCurrency,
+  getRoleLabel,
+  getAuctionStatusLabel,
+  getEffectiveRosterCount,
+  getAuctionSlotsRemaining,
+} from '@/lib/auction/validation';
 import type {
   Auction,
   Player,
@@ -486,7 +492,7 @@ export function AuctionControlPanel({
                               }
                               disabled={
                                 team.remaining_purse < plusOneAmount ||
-                                team.roster_count >= team.max_roster_size
+                                getAuctionSlotsRemaining(team) <= 0
                               }
                             >
                               <span className="truncate text-xs sm:text-sm">{team.short_name}</span>
@@ -790,7 +796,8 @@ export function AuctionControlPanel({
                           {team.captain_name ? ` · ${team.captain_name}` : ''}
                         </p>
                         <p className="text-xs text-slate-500">
-                          {team.roster_count}/{team.max_roster_size} players
+                          {getEffectiveRosterCount(team)}/{team.max_roster_size} players
+                          {team.captain_name ? ' (incl. captain)' : ''}
                         </p>
                       </div>
                     </div>

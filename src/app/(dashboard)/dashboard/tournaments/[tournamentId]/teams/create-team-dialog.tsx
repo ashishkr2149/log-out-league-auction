@@ -33,7 +33,8 @@ export function CreateTeamDialog({ tournamentId }: CreateTeamDialogProps) {
       primary_color: '#3498db',
       secondary_color: '#ffffff',
       initial_purse: 100,
-      max_roster_size: 15,
+      max_roster_size: 6,
+      captain_name: '',
     },
   });
 
@@ -94,12 +95,16 @@ export function CreateTeamDialog({ tournamentId }: CreateTeamDialogProps) {
             {errors.short_name && <p className="text-sm text-red-400">{errors.short_name.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label className="text-slate-300">Captain Name</Label>
+            <Label className="text-slate-300">Captain Name *</Label>
             <Input
               {...register('captain_name')}
-              placeholder="e.g., Virat Kohli"
+              placeholder="e.g., Ankit"
               className="border-slate-700 bg-slate-800 text-white"
             />
+            {errors.captain_name && (
+              <p className="text-sm text-red-400">{errors.captain_name.message}</p>
+            )}
+            <p className="text-xs text-slate-500">Captain counts as 1 roster slot</p>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -129,12 +134,13 @@ export function CreateTeamDialog({ tournamentId }: CreateTeamDialogProps) {
             {errors.initial_purse && <p className="text-sm text-red-400">{errors.initial_purse.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label className="text-slate-300">Max Roster Size</Label>
+            <Label className="text-slate-300">Max Roster Size (includes captain)</Label>
             <Input
               type="number"
               {...register('max_roster_size', { valueAsNumber: true })}
               className="border-slate-700 bg-slate-800 text-white"
             />
+            <p className="text-xs text-slate-500">Default 6 = 1 captain + 5 auction buys</p>
           </div>
           <div className="flex gap-3 pt-2">
             <Button

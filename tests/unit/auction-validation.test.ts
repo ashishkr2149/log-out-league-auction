@@ -5,6 +5,9 @@ import {
   formatCurrency,
   formatIndianNumber,
   getRoleLabel,
+  getCaptainSlot,
+  getEffectiveRosterCount,
+  getAuctionSlotsRemaining,
 } from '@/lib/auction/validation';
 import type { TeamWithStats } from '@/types/database';
 
@@ -58,7 +61,45 @@ describe('Bid Eligibility Validation', () => {
   it('rejects bid when roster is full', () => {
     const team = makeTeam({ roster_count: 15, max_roster_size: 15 });
     const result = validateBidEligibility(team, 200000, 100000);
-    expect(result).toContain('maximum roster size');
+    expect(result).toContain('full roster');
+  });
+
+  it('rejects bid when bought players + captain fill the roster', () => {
+    const team = makeTeam({
+      roster_count: 5,
+      max_roster_size: 6,
+      captain_name: 'Ankit',
+    });
+    const result = validateBidEligibility(team, 200000, 100000);
+    expect(result).toContain('full roster');
+  });
+
+  it('allows bid when one auction slot remains beside captain', () => {
+    const team = makeTeam({
+      roster_count: 4,
+      max_roster_size: 6,
+      captain_name: 'Ankit',
+      remaining_purse: 5000000,
+    });
+    expect(validateBidEligibility(team, 200000, 100000)).toBeNull();
+  });
+});
+
+describe('Captain roster counting', () => {
+  it('counts captain as one roster slot', () => {
+    expect(getCaptainSlot({ captain_name: 'Ankit' })).toBe(1);
+    expect(getCaptainSlot({ captain_name: '  ' })).toBe(0);
+    expect(getCaptainSlot({ captain_name: null })).toBe(0);
+  });
+
+  it('includes captain in effective roster (5 bought + captain = 6)', () => {
+    const team = makeTeam({
+      roster_count: 5,
+      max_roster_size: 6,
+      captain_name: 'Rohit',
+    });
+    expect(getEffectiveRosterCount(team)).toBe(6);
+    expect(getAuctionSlotsRemaining(team)).toBe(0);
   });
 });
 

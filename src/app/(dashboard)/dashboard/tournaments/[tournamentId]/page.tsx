@@ -124,40 +124,54 @@ export default async function TournamentDetailPage({ params }: Props) {
       {/* Management Sections */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Teams */}
-        <Card className="border-slate-800 bg-slate-900/80">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-white">Teams</CardTitle>
-              <Link href={`/dashboard/tournaments/${tournamentId}/teams`}>
-                <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+        <Link
+          href={`/dashboard/tournaments/${tournamentId}/teams`}
+          className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
+        >
+          <Card className="border-slate-800 bg-slate-900/80 h-full transition hover:border-slate-600 hover:bg-slate-900 cursor-pointer">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white">Teams</CardTitle>
+                <Button
+                  size="sm"
+                  className="bg-red-600 hover:bg-red-700 text-white pointer-events-none"
+                  tabIndex={-1}
+                >
                   <Plus className="mr-1 h-3 w-3" />
                   Manage
                 </Button>
-              </Link>
-            </div>
-            <CardDescription className="text-slate-400">
-              {teamCount ?? 0} teams registered
-            </CardDescription>
-          </CardHeader>
-        </Card>
+              </div>
+              <CardDescription className="text-slate-400">
+                {teamCount ?? 0} teams registered
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
 
         {/* Players */}
-        <Card className="border-slate-800 bg-slate-900/80">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-white">Players</CardTitle>
-              <Link href={`/dashboard/tournaments/${tournamentId}/players`}>
-                <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+        <Link
+          href={`/dashboard/tournaments/${tournamentId}/players`}
+          className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
+        >
+          <Card className="border-slate-800 bg-slate-900/80 h-full transition hover:border-slate-600 hover:bg-slate-900 cursor-pointer">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white">Players</CardTitle>
+                <Button
+                  size="sm"
+                  className="bg-red-600 hover:bg-red-700 text-white pointer-events-none"
+                  tabIndex={-1}
+                >
                   <Plus className="mr-1 h-3 w-3" />
                   Manage
                 </Button>
-              </Link>
-            </div>
-            <CardDescription className="text-slate-400">
-              {playerCount ?? 0} players registered
-            </CardDescription>
-          </CardHeader>
-        </Card>
+              </div>
+              <CardDescription className="text-slate-400">
+                {playerCount ?? 0} players registered
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
 
         {/* Auctions */}
         <Card className="border-slate-800 bg-slate-900/80">

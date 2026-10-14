@@ -19,7 +19,7 @@ export type TournamentFormData = z.infer<typeof tournamentSchema>;
 export const teamSchema = z.object({
   name: z.string().min(1, 'Team name is required').max(100),
   short_name: z.string().min(1, 'Short name is required').max(10),
-  captain_name: z.string().max(100).optional().nullable(),
+  captain_name: z.string().min(1, 'Captain name is required').max(100),
   primary_color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Invalid color'),
   secondary_color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Invalid color'),
   initial_purse: z.number().int().positive('Purse must be positive'),

@@ -30,20 +30,26 @@ export async function createTeam(tournamentId: string, data: TeamFormData) {
   return { success: true, teamId: team.id };
 }
 
-export async function updateTeam(teamId: string, tournamentId: string, data: Partial<TeamFormData>) {
+export async function updateTeam(teamId: string, tournamentId: string, data: TeamFormData) {
   await requireUser();
+  const validated = teamSchema.parse(data);
   const supabase = await createClient();
 
   const { error } = await supabase
     .from('teams')
-    .update(data)
-    .eq('id', teamId);
+    .update(validated)
+    .eq('id', teamId)
+    .eq('tournament_id', tournamentId);
 
   if (error) {
+    if (error.code === '23505') {
+      return { error: 'A team with this name already exists in this tournament' };
+    }
     return { error: error.message };
   }
 
   revalidatePath(`/dashboard/tournaments/${tournamentId}/teams`);
+  revalidatePath(`/dashboard/tournaments/${tournamentId}`);
   return { success: true };
 }
 
