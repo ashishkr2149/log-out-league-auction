@@ -76,6 +76,8 @@ export default async function AuctionResultsPage({ params }: Props) {
   const highestPrice = soldPlayers.reduce((max, ap) => Math.max(max, ap.final_sale_price ?? 0), 0);
 
   const tournament = auction.tournament as unknown as { id: string; name: string };
+  const currency = auction.currency_code || 'PTS';
+  const money = (amount: number) => formatCurrency(amount, currency);
 
   return (
     <div className="space-y-6">
@@ -110,13 +112,13 @@ export default async function AuctionResultsPage({ params }: Props) {
         <Card className="border-slate-800 bg-slate-900/80">
           <CardContent className="p-6">
             <p className="text-sm text-slate-400">Total Spending</p>
-            <p className="text-2xl font-bold text-white">{formatCurrency(totalSpending)}</p>
+            <p className="text-2xl font-bold text-white">{money(totalSpending)}</p>
           </CardContent>
         </Card>
         <Card className="border-slate-800 bg-slate-900/80">
           <CardContent className="p-6">
             <p className="text-sm text-slate-400">Highest Price</p>
-            <p className="text-2xl font-bold text-yellow-400">{formatCurrency(highestPrice)}</p>
+            <p className="text-2xl font-bold text-yellow-400">{money(highestPrice)}</p>
           </CardContent>
         </Card>
       </div>
@@ -126,11 +128,12 @@ export default async function AuctionResultsPage({ params }: Props) {
         <CardHeader>
           <CardTitle className="text-white">Team Summary</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="border-slate-800">
                 <TableHead className="text-slate-400">Team</TableHead>
+                <TableHead className="text-slate-400">Captain</TableHead>
                 <TableHead className="text-slate-400">Initial Purse</TableHead>
                 <TableHead className="text-slate-400">Spent</TableHead>
                 <TableHead className="text-slate-400">Remaining</TableHead>
@@ -152,9 +155,10 @@ export default async function AuctionResultsPage({ params }: Props) {
                       <span className="text-white font-medium">{team.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-white">{formatCurrency(team.initial_purse)}</TableCell>
-                  <TableCell className="text-red-400">{formatCurrency(team.spent)}</TableCell>
-                  <TableCell className="text-green-400 font-bold">{formatCurrency(team.remaining_purse)}</TableCell>
+                  <TableCell className="text-slate-300">{team.captain_name ?? '—'}</TableCell>
+                  <TableCell className="text-white">{money(team.initial_purse)}</TableCell>
+                  <TableCell className="text-red-400">{money(team.spent)}</TableCell>
+                  <TableCell className="text-green-400 font-bold">{money(team.remaining_purse)}</TableCell>
                   <TableCell className="text-white">{team.roster_count}</TableCell>
                   <TableCell className="text-slate-400">{team.max_roster_size - team.roster_count}</TableCell>
                 </TableRow>
@@ -169,7 +173,7 @@ export default async function AuctionResultsPage({ params }: Props) {
         <CardHeader>
           <CardTitle className="text-white">Sold Players ({soldPlayers.length})</CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="border-slate-800">
@@ -192,10 +196,10 @@ export default async function AuctionResultsPage({ params }: Props) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-slate-400 font-mono text-sm">
-                    {formatCurrency(ap.base_price)}
+                    {money(ap.base_price)}
                   </TableCell>
                   <TableCell className="text-green-400 font-bold font-mono">
-                    {formatCurrency(ap.final_sale_price ?? 0)}
+                    {money(ap.final_sale_price ?? 0)}
                   </TableCell>
                   <TableCell>
                     <span
@@ -237,7 +241,7 @@ export default async function AuctionResultsPage({ params }: Props) {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-slate-400 font-mono text-sm">
-                      {formatCurrency(ap.base_price)}
+                      {money(ap.base_price)}
                     </TableCell>
                   </TableRow>
                 ))}

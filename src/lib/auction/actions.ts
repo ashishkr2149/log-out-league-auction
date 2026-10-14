@@ -2,12 +2,70 @@
 
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/auth/permissions';
-import { isValidTransition, canAcceptBids } from '@/lib/auction/state';
+import { isValidTransition } from '@/lib/auction/state';
 import {
   AuctionStatus,
   AuctionPhase,
   AuctionEventType,
 } from '@/types/database';
+
+export type AuctionActionState = {
+  newVersion: number;
+  status: AuctionStatus;
+  phase: AuctionPhase;
+  currentBid: number | null;
+  currentTeamId: string | null;
+  currentPlayerId: string | null;
+};
+
+export type AuctionActionResult =
+  | ({ success: true } & AuctionActionState & { purchaseId?: string })
+  | { success?: false; error: string };
+
+function toActionState(auction: {
+  state_version: number;
+  status: string;
+  current_phase: string;
+  current_bid_amount: number | null;
+  current_bid_team_id: string | null;
+  current_player_id: string | null;
+}): AuctionActionState {
+  return {
+    newVersion: auction.state_version,
+    status: auction.status as AuctionStatus,
+    phase: auction.current_phase as AuctionPhase,
+    currentBid: auction.current_bid_amount,
+    currentTeamId: auction.current_bid_team_id,
+    currentPlayerId: auction.current_player_id,
+  };
+}
+
+async function updateAuctionCas(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  auctionId: string,
+  stateVersion: number,
+  updates: Record<string, unknown>
+): Promise<{ ok: true; auction: Record<string, unknown> & {
+  state_version: number;
+  status: string;
+  current_phase: string;
+  current_bid_amount: number | null;
+  current_bid_team_id: string | null;
+  current_player_id: string | null;
+} } | { ok: false; error: string }> {
+  const { data, error } = await supabase
+    .from('auctions')
+    .update({ ...updates, state_version: stateVersion + 1 })
+    .eq('id', auctionId)
+    .eq('state_version', stateVersion)
+    .select('*')
+    .maybeSingle();
+
+  if (error || !data) {
+    return { ok: false, error: 'Auction state has changed. Please try again.' };
+  }
+  return { ok: true, auction: data };
+}
 
 // ============================================================
 // AUCTION STATE TRANSITIONS
@@ -17,7 +75,7 @@ export async function transitionAuctionStatus(
   auctionId: string,
   newStatus: AuctionStatus,
   stateVersion: number
-) {
+): Promise<AuctionActionResult> {
   const user = await requireUser();
   const supabase = await createClient();
 
@@ -46,15 +104,16 @@ export async function transitionAuctionStatus(
   let newPhase: AuctionPhase = auction.current_phase as AuctionPhase;
   const updates: Record<string, unknown> = {
     status: newStatus,
-    state_version: stateVersion + 1,
   };
 
   if (newStatus === 'live' && auction.status === 'ready') {
     newPhase = 'standby';
     updates.started_at = new Date().toISOString();
   } else if (newStatus === 'live' && auction.status === 'paused') {
-    // Restore previous phase before pause, or standby
-    newPhase = auction.current_player_id ? 'bidding' : 'standby';
+    // Prefer bidding if a player is mid-lot; otherwise standby
+    newPhase = auction.current_player_id
+      ? ((auction.current_phase === 'player_intro' ? 'player_intro' : 'bidding') as AuctionPhase)
+      : 'standby';
   } else if (newStatus === 'paused') {
     newPhase = 'paused';
   } else if (newStatus === 'completed') {
@@ -63,16 +122,8 @@ export async function transitionAuctionStatus(
   }
   updates.current_phase = newPhase;
 
-  // Update auction
-  const { error: updateError } = await supabase
-    .from('auctions')
-    .update(updates)
-    .eq('id', auctionId)
-    .eq('state_version', stateVersion);
-
-  if (updateError) {
-    return { error: 'Failed to update auction state' };
-  }
+  const updated = await updateAuctionCas(supabase, auctionId, stateVersion, updates);
+  if (!updated.ok) return { error: updated.error };
 
   // Record event
   const eventType: AuctionEventType = newStatus === 'live' && auction.status === 'paused'
@@ -90,7 +141,7 @@ export async function transitionAuctionStatus(
     payload: { previous_status: auction.status, new_status: newStatus },
   });
 
-  return { success: true, newVersion: stateVersion + 1 };
+  return { success: true, ...toActionState(updated.auction) };
 }
 
 // ============================================================
@@ -101,7 +152,7 @@ export async function nominatePlayer(
   auctionId: string,
   auctionPlayerId: string,
   stateVersion: number
-) {
+): Promise<AuctionActionResult> {
   const user = await requireUser();
   const supabase = await createClient();
 
@@ -116,8 +167,8 @@ export async function nominatePlayer(
   if (auction.state_version !== stateVersion) {
     return { error: 'Auction state has changed. Please refresh.' };
   }
-  if (!canAcceptBids(auction.status as AuctionStatus) && auction.status !== 'paused') {
-    return { error: 'Auction is not live' };
+  if (auction.status !== 'live' && auction.status !== 'ready' && auction.status !== 'paused') {
+    return { error: 'Auction is not ready for nominations' };
   }
 
   // Fetch auction player
@@ -155,22 +206,15 @@ export async function nominatePlayer(
     .update({ status: 'nominated' })
     .eq('id', auctionPlayerId);
 
-  // Update auction state
-  const { error: updateError } = await supabase
-    .from('auctions')
-    .update({
-      current_player_id: auctionPlayer.player_id,
-      current_bid_amount: null,
-      current_bid_team_id: null,
-      current_phase: 'player_intro',
-      state_version: stateVersion + 1,
-    })
-    .eq('id', auctionId)
-    .eq('state_version', stateVersion);
-
-  if (updateError) {
-    return { error: 'Failed to update auction. Try again.' };
-  }
+  const updated = await updateAuctionCas(supabase, auctionId, stateVersion, {
+    current_player_id: auctionPlayer.player_id,
+    current_bid_amount: null,
+    current_bid_team_id: null,
+    current_phase: 'player_intro',
+    status: auction.status === 'ready' ? 'live' : auction.status,
+    ...(auction.status === 'ready' ? { started_at: new Date().toISOString() } : {}),
+  });
+  if (!updated.ok) return { error: updated.error };
 
   await recordAuctionEvent(supabase, {
     auction_id: auctionId,
@@ -183,7 +227,7 @@ export async function nominatePlayer(
     },
   });
 
-  return { success: true, newVersion: stateVersion + 1 };
+  return { success: true, ...toActionState(updated.auction) };
 }
 
 // ============================================================
@@ -193,7 +237,7 @@ export async function nominatePlayer(
 export async function startBidding(
   auctionId: string,
   stateVersion: number
-) {
+): Promise<AuctionActionResult> {
   const user = await requireUser();
   const supabase = await createClient();
 
@@ -227,20 +271,13 @@ export async function startBidding(
     .update({ status: 'bidding' })
     .eq('id', auctionPlayer.id);
 
-  // Update auction phase
-  const { error: updateError } = await supabase
-    .from('auctions')
-    .update({
-      current_bid_amount: auctionPlayer.base_price,
-      current_phase: 'bidding',
-      state_version: stateVersion + 1,
-    })
-    .eq('id', auctionId)
-    .eq('state_version', stateVersion);
-
-  if (updateError) {
-    return { error: 'Failed to start bidding' };
-  }
+  // Opening amount shown, but no team yet — first bid can be at base.
+  const updated = await updateAuctionCas(supabase, auctionId, stateVersion, {
+    current_bid_amount: auctionPlayer.base_price,
+    current_bid_team_id: null,
+    current_phase: 'bidding',
+  });
+  if (!updated.ok) return { error: updated.error };
 
   await recordAuctionEvent(supabase, {
     auction_id: auctionId,
@@ -250,7 +287,7 @@ export async function startBidding(
     payload: { base_price: auctionPlayer.base_price },
   });
 
-  return { success: true, newVersion: stateVersion + 1 };
+  return { success: true, ...toActionState(updated.auction) };
 }
 
 // ============================================================
@@ -262,7 +299,7 @@ export async function placeBid(
   teamId: string,
   amount: number,
   stateVersion: number
-) {
+): Promise<AuctionActionResult> {
   const user = await requireUser();
   const supabase = await createClient();
 
@@ -282,9 +319,18 @@ export async function placeBid(
   if (!auction.current_player_id) return { error: 'No player being auctioned' };
 
   // Validate bid amount
-  if (amount <= 0) return { error: 'Bid amount must be positive' };
-  if (auction.current_bid_amount !== null && amount <= auction.current_bid_amount) {
-    return { error: `Bid must be higher than current bid ₹${auction.current_bid_amount.toLocaleString()}` };
+  if (!Number.isInteger(amount) || amount <= 0) {
+    return { error: 'Bid amount must be a positive whole number' };
+  }
+
+  const hasLeadingTeam = Boolean(auction.current_bid_team_id);
+  if (!hasLeadingTeam) {
+    // First team bid can equal the opening/base amount
+    if (auction.current_bid_amount !== null && amount < auction.current_bid_amount) {
+      return { error: `Bid must be at least ${auction.current_bid_amount}` };
+    }
+  } else if (auction.current_bid_amount !== null && amount <= auction.current_bid_amount) {
+    return { error: `Bid must be higher than current bid ${auction.current_bid_amount}` };
   }
 
   // Fetch team and validate eligibility
@@ -309,7 +355,7 @@ export async function placeBid(
   const remainingPurse = team.initial_purse - totalSpent;
 
   if (amount > remainingPurse) {
-    return { error: `${team.name} has insufficient funds. Remaining: ₹${remainingPurse.toLocaleString()}` };
+    return { error: `${team.name} has insufficient funds. Remaining: ${remainingPurse}` };
   }
 
   // Check roster capacity
@@ -339,7 +385,13 @@ export async function placeBid(
     .select('*', { count: 'exact', head: true })
     .eq('auction_player_id', auctionPlayer.id);
 
-  // Record the bid
+  const updated = await updateAuctionCas(supabase, auctionId, stateVersion, {
+    current_bid_amount: amount,
+    current_bid_team_id: teamId,
+  });
+  if (!updated.ok) return { error: updated.error };
+
+  // Record the bid after CAS succeeds
   await supabase.from('auction_bids').insert({
     auction_id: auctionId,
     auction_player_id: auctionPlayer.id,
@@ -348,21 +400,6 @@ export async function placeBid(
     sequence_number: (bidCount ?? 0) + 1,
     operator_id: user.id,
   });
-
-  // Update auction state
-  const { error: updateError } = await supabase
-    .from('auctions')
-    .update({
-      current_bid_amount: amount,
-      current_bid_team_id: teamId,
-      state_version: stateVersion + 1,
-    })
-    .eq('id', auctionId)
-    .eq('state_version', stateVersion);
-
-  if (updateError) {
-    return { error: 'Failed to place bid. The auction state may have changed.' };
-  }
 
   await recordAuctionEvent(supabase, {
     auction_id: auctionId,
@@ -378,7 +415,7 @@ export async function placeBid(
     },
   });
 
-  return { success: true, newVersion: stateVersion + 1 };
+  return { success: true, ...toActionState(updated.auction) };
 }
 
 // ============================================================
@@ -388,7 +425,7 @@ export async function placeBid(
 export async function sellPlayer(
   auctionId: string,
   stateVersion: number
-) {
+): Promise<AuctionActionResult> {
   const user = await requireUser();
   const serviceClient = await createServiceClient();
   const supabase = await createClient();
@@ -437,7 +474,7 @@ export async function sellPlayer(
   const remainingPurse = team.initial_purse - totalSpent;
 
   if (finalPrice > remainingPurse) {
-    return { error: `${team.name} cannot afford ₹${finalPrice.toLocaleString()}. Remaining: ₹${remainingPurse.toLocaleString()}` };
+    return { error: `${team.name} cannot afford ${finalPrice}. Remaining: ${remainingPurse}` };
   }
 
   // Check roster capacity
@@ -521,16 +558,18 @@ export async function sellPlayer(
     .eq('id', playerId);
 
   // 5. Update auction state
-  const { error: auctionUpdateError } = await serviceClient
+  const { data: updatedAuction, error: auctionUpdateError } = await serviceClient
     .from('auctions')
     .update({
       current_phase: 'sold',
       state_version: stateVersion + 1,
     })
     .eq('id', auctionId)
-    .eq('state_version', stateVersion);
+    .eq('state_version', stateVersion)
+    .select('*')
+    .maybeSingle();
 
-  if (auctionUpdateError) {
+  if (auctionUpdateError || !updatedAuction) {
     return { error: 'Sale recorded but auction state update failed. Refresh the page.' };
   }
 
@@ -548,7 +587,7 @@ export async function sellPlayer(
     },
   });
 
-  return { success: true, newVersion: stateVersion + 1, purchaseId: purchase.id };
+  return { success: true, ...toActionState(updatedAuction), purchaseId: purchase.id };
 }
 
 // ============================================================
@@ -558,7 +597,7 @@ export async function sellPlayer(
 export async function markUnsold(
   auctionId: string,
   stateVersion: number
-) {
+): Promise<AuctionActionResult> {
   const user = await requireUser();
   const supabase = await createClient();
 
@@ -574,6 +613,9 @@ export async function markUnsold(
   }
   if (auction.status !== 'live') return { error: 'Auction is not live' };
   if (!auction.current_player_id) return { error: 'No player being auctioned' };
+  if (auction.current_phase !== 'bidding' && auction.current_phase !== 'player_intro') {
+    return { error: 'Can only mark unsold during player intro or bidding' };
+  }
 
   const playerId = auction.current_player_id;
 
@@ -599,19 +641,10 @@ export async function markUnsold(
     .update({ status: 'unsold' })
     .eq('id', playerId);
 
-  // Update auction state
-  const { error: updateError } = await supabase
-    .from('auctions')
-    .update({
-      current_phase: 'unsold',
-      state_version: stateVersion + 1,
-    })
-    .eq('id', auctionId)
-    .eq('state_version', stateVersion);
-
-  if (updateError) {
-    return { error: 'Failed to mark player unsold' };
-  }
+  const updated = await updateAuctionCas(supabase, auctionId, stateVersion, {
+    current_phase: 'unsold',
+  });
+  if (!updated.ok) return { error: updated.error };
 
   await recordAuctionEvent(supabase, {
     auction_id: auctionId,
@@ -621,7 +654,7 @@ export async function markUnsold(
     payload: { base_price: auction.current_bid_amount },
   });
 
-  return { success: true, newVersion: stateVersion + 1 };
+  return { success: true, ...toActionState(updated.auction) };
 }
 
 // ============================================================
@@ -632,7 +665,7 @@ export async function undoLastSale(
   auctionId: string,
   purchaseId: string,
   stateVersion: number
-) {
+): Promise<AuctionActionResult> {
   const user = await requireUser();
   const serviceClient = await createServiceClient();
   const supabase = await createClient();
@@ -700,7 +733,7 @@ export async function undoLastSale(
     .eq('id', purchase.player_id);
 
   // 5. Update auction state version
-  await serviceClient
+  const { data: updatedAuction, error: updateError } = await serviceClient
     .from('auctions')
     .update({
       state_version: stateVersion + 1,
@@ -708,8 +741,16 @@ export async function undoLastSale(
       current_player_id: null,
       current_bid_amount: null,
       current_bid_team_id: null,
+      status: auction.status === 'completed' ? 'live' : auction.status,
     })
-    .eq('id', auctionId);
+    .eq('id', auctionId)
+    .eq('state_version', stateVersion)
+    .select('*')
+    .maybeSingle();
+
+  if (updateError || !updatedAuction) {
+    return { error: 'Failed to undo sale — auction state changed. Refresh and try again.' };
+  }
 
   // 6. Record compensating audit event
   await recordAuctionEvent(supabase, {
@@ -725,7 +766,83 @@ export async function undoLastSale(
     },
   });
 
-  return { success: true, newVersion: stateVersion + 1 };
+  return { success: true, ...toActionState(updatedAuction) };
+}
+
+// ============================================================
+// UNDO LAST BID (during active bidding)
+// ============================================================
+
+export async function undoLastBid(
+  auctionId: string,
+  stateVersion: number
+): Promise<AuctionActionResult> {
+  const user = await requireUser();
+  const supabase = await createClient();
+
+  const { data: auction, error } = await supabase
+    .from('auctions')
+    .select('*')
+    .eq('id', auctionId)
+    .single();
+
+  if (error || !auction) return { error: 'Auction not found' };
+  if (auction.state_version !== stateVersion) {
+    return { error: 'Auction state has changed. Please refresh.' };
+  }
+  if (auction.status !== 'live') return { error: 'Auction is not live' };
+  if (auction.current_phase !== 'bidding') return { error: 'Not in bidding phase' };
+  if (!auction.current_player_id) return { error: 'No player being auctioned' };
+  if (!auction.current_bid_team_id) {
+    return { error: 'No team bid to undo yet' };
+  }
+
+  const { data: auctionPlayer } = await supabase
+    .from('auction_players')
+    .select('id, base_price')
+    .eq('auction_id', auctionId)
+    .eq('player_id', auction.current_player_id)
+    .single();
+
+  if (!auctionPlayer) return { error: 'Auction player not found' };
+
+  const { data: recentBids } = await supabase
+    .from('auction_bids')
+    .select('*')
+    .eq('auction_player_id', auctionPlayer.id)
+    .order('sequence_number', { ascending: false })
+    .limit(2);
+
+  if (!recentBids || recentBids.length === 0) {
+    return { error: 'No bids to undo' };
+  }
+
+  const lastBid = recentBids[0];
+  const previousBid = recentBids[1] ?? null;
+
+  await supabase.from('auction_bids').delete().eq('id', lastBid.id);
+
+  const updated = await updateAuctionCas(supabase, auctionId, stateVersion, {
+    current_bid_amount: previousBid?.amount ?? auctionPlayer.base_price,
+    current_bid_team_id: previousBid?.team_id ?? null,
+  });
+  if (!updated.ok) return { error: updated.error };
+
+  await recordAuctionEvent(supabase, {
+    auction_id: auctionId,
+    event_type: 'bid_corrected',
+    player_id: auction.current_player_id,
+    team_id: lastBid.team_id,
+    actor_id: user.id,
+    payload: {
+      undone_amount: lastBid.amount,
+      undone_team_id: lastBid.team_id,
+      restored_amount: previousBid?.amount ?? auctionPlayer.base_price,
+      restored_team_id: previousBid?.team_id ?? null,
+    },
+  });
+
+  return { success: true, ...toActionState(updated.auction) };
 }
 
 // ============================================================
