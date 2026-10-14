@@ -1,5 +1,5 @@
-import { PageSkeleton } from '@/components/dashboard/page-skeleton';
+import { AuctionWorkspaceSkeleton } from '@/components/dashboard/page-skeleton';
 
 export default function Loading() {
-  return <PageSkeleton />;
+  return <AuctionWorkspaceSkeleton />;
 }

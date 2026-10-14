@@ -1,5 +1,5 @@
-import { PageSkeleton } from '@/components/dashboard/page-skeleton';
+import { TournamentsListSkeleton } from '@/components/dashboard/page-skeleton';
 
 export default function Loading() {
-  return <PageSkeleton />;
+  return <TournamentsListSkeleton />;
 }

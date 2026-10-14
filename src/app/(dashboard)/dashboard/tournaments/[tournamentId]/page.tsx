@@ -99,14 +99,18 @@ export default async function TournamentDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Compact vertical stats — always 4-up */}
+      {/* Stats: icon-on-top (mobile) → icon-on-left (desktop) */}
       <div className="grid grid-cols-4 gap-2 sm:gap-3">
         {stats.map(({ label, value, icon: Icon, color }) => (
           <Card key={label} className="border-slate-800 bg-slate-900/80">
-            <CardContent className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 px-1.5 py-3 sm:px-3 sm:py-4 text-center">
-              <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${color}`} />
-              <p className="text-[10px] sm:text-xs text-slate-400 leading-tight">{label}</p>
-              <p className="text-lg sm:text-2xl font-bold text-white leading-none">{value}</p>
+            <CardContent className="flex flex-col items-center justify-center gap-1.5 px-1.5 py-3 text-center sm:flex-row sm:items-center sm:justify-start sm:gap-3 sm:px-4 sm:py-4 sm:text-left">
+              <Icon className={`h-5 w-5 sm:h-7 sm:w-7 shrink-0 ${color}`} />
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-sm text-slate-400 leading-tight truncate">{label}</p>
+                <p className="text-lg sm:text-2xl font-bold text-white leading-none sm:mt-0.5">
+                  {value}
+                </p>
+              </div>
             </CardContent>
           </Card>
         ))}
