@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import type { Team } from '@/types/database';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { formatCurrency, getEffectiveRosterCount } from '@/lib/auction/validation';
 import { EditTeamDialog } from './edit-team-dialog';
 import { Pencil } from 'lucide-react';
@@ -32,18 +34,14 @@ export function TeamCards({ tournamentId, teams }: TeamCardsProps) {
           return (
             <Card
               key={team.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => setEditingTeam(team)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setEditingTeam(team);
-                }
-              }}
-              className="border-slate-800 bg-slate-900/80 cursor-pointer transition hover:border-slate-600 hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
+              className="border-slate-800 bg-slate-900/80 transition hover:border-slate-600 hover:bg-slate-900 relative"
             >
-              <CardHeader>
+              <Link
+                href={`/dashboard/tournaments/${tournamentId}/teams/${team.id}`}
+                className="absolute inset-0 z-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
+                aria-label={`View ${team.name} details`}
+              />
+              <CardHeader className="relative z-10 pointer-events-none">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3 min-w-0">
                     <div
@@ -64,7 +62,7 @@ export function TeamCards({ tournamentId, teams }: TeamCardsProps) {
                       </CardDescription>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 pointer-events-auto">
                     <Badge
                       variant="outline"
                       className={
@@ -75,11 +73,24 @@ export function TeamCards({ tournamentId, teams }: TeamCardsProps) {
                     >
                       {team.is_active ? 'Active' : 'Inactive'}
                     </Badge>
-                    <Pencil className="h-3.5 w-3.5 text-slate-500" />
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                      aria-label={`Edit ${team.name}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditingTeam(team);
+                      }}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="relative z-10 pointer-events-none">
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-400">Initial Purse</span>

@@ -49,6 +49,7 @@ export async function updateTeam(teamId: string, tournamentId: string, data: Tea
   }
 
   revalidatePath(`/dashboard/tournaments/${tournamentId}/teams`);
+  revalidatePath(`/dashboard/tournaments/${tournamentId}/teams/${teamId}`);
   revalidatePath(`/dashboard/tournaments/${tournamentId}`);
   return { success: true };
 }

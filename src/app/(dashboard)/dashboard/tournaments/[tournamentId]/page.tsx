@@ -48,7 +48,7 @@ export default async function TournamentDetailPage({ params }: Props) {
   const stats = [
     { label: 'Players', value: playerCount ?? 0, icon: Users, color: 'text-blue-400' },
     { label: 'Teams', value: teamCount ?? 0, icon: UserCheck, color: 'text-green-400' },
-    { label: 'Auctions', value: auctionCount ?? 0, icon: Gavel, color: 'text-yellow-400' },
+    { label: 'Auction', value: auctionCount ?? 0, icon: Gavel, color: 'text-yellow-400' },
     { label: 'Sold', value: soldCount ?? 0, icon: Trophy, color: 'text-red-400' },
   ];
 
@@ -64,9 +64,10 @@ export default async function TournamentDetailPage({ params }: Props) {
       description: `${playerCount ?? 0} players registered`,
     },
     {
-      title: 'Auctions',
+      title: 'Auction',
       href: `/dashboard/tournaments/${tournamentId}/auctions`,
-      description: `${auctionCount ?? 0} auction events`,
+      description:
+        (auctionCount ?? 0) > 0 ? '1 auction for this tournament' : 'No auction yet — create one',
     },
   ];
 
@@ -98,16 +99,14 @@ export default async function TournamentDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Compact stats — 2×2 mobile, 4-up desktop */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {/* Compact vertical stats — always 4-up */}
+      <div className="grid grid-cols-4 gap-2 sm:gap-3">
         {stats.map(({ label, value, icon: Icon, color }) => (
           <Card key={label} className="border-slate-800 bg-slate-900/80">
-            <CardContent className="flex items-center gap-3 p-3 sm:p-4">
-              <Icon className={`h-6 w-6 sm:h-7 sm:w-7 shrink-0 ${color}`} />
-              <div className="min-w-0">
-                <p className="text-xs sm:text-sm text-slate-400 truncate">{label}</p>
-                <p className="text-xl sm:text-2xl font-bold text-white leading-tight">{value}</p>
-              </div>
+            <CardContent className="flex flex-col items-center justify-center gap-1.5 sm:gap-2 px-1.5 py-3 sm:px-3 sm:py-4 text-center">
+              <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${color}`} />
+              <p className="text-[10px] sm:text-xs text-slate-400 leading-tight">{label}</p>
+              <p className="text-lg sm:text-2xl font-bold text-white leading-none">{value}</p>
             </CardContent>
           </Card>
         ))}

@@ -66,7 +66,7 @@ export default async function TeamsPage({ params }: Props) {
           <div>
             <h1 className="text-3xl font-bold text-white">Teams</h1>
             <p className="mt-1 text-slate-400">
-              {tournament.name} — click a card to edit
+              {tournament.name} — click a card for squad details
             </p>
           </div>
         </div>

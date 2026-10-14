@@ -10,6 +10,15 @@ export async function createAuction(tournamentId: string, data: AuctionFormData)
   const validated = auctionSchema.parse(data);
   const supabase = await createClient();
 
+  const { count: existingCount } = await supabase
+    .from('auctions')
+    .select('*', { count: 'exact', head: true })
+    .eq('tournament_id', tournamentId);
+
+  if ((existingCount ?? 0) > 0) {
+    return { error: 'This tournament already has an auction. Only one auction is allowed per tournament.' };
+  }
+
   // Create the auction
   const { data: auction, error } = await supabase
     .from('auctions')

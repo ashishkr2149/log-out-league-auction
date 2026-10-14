@@ -11,13 +11,11 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
   Trophy,
   LayoutDashboard,
-  Users,
-  Gavel,
-  Settings,
   LogOut,
   Menu,
   ChevronRight,
 } from 'lucide-react';
+import { NavigationProgress } from '@/components/dashboard/navigation-progress';
 
 interface NavItem {
   label: string;
@@ -101,6 +99,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-slate-950">
+      <NavigationProgress />
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-slate-800 bg-slate-900/80 backdrop-blur-sm lg:block">
         <SidebarContent pathname={pathname} />
