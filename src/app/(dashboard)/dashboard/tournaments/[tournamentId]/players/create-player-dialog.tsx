@@ -63,11 +63,14 @@ export function CreatePlayerDialog({ tournamentId }: CreatePlayerDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button className="bg-red-600 hover:bg-red-700 text-white" />
+          <Button
+            className="bg-red-600 hover:bg-red-700 text-white size-9 sm:size-auto sm:h-10 sm:px-4"
+            aria-label="Add Player"
+          />
         }
       >
-        <Plus className="mr-2 h-4 w-4" />
-        Add Player
+        <Plus className="h-4 w-4 sm:mr-2" />
+        <span className="hidden sm:inline">Add Player</span>
       </DialogTrigger>
       <DialogContent className="border-slate-800 bg-slate-900 max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>

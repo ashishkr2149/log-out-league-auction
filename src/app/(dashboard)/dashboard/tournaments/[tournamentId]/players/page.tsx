@@ -33,21 +33,22 @@ export default async function PlayersPage({ params }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <Link href={`/dashboard/tournaments/${tournamentId}`}>
-            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white shrink-0">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-white">Players</h1>
-            <p className="mt-1 text-slate-400">
-              {tournament.name} — {players?.length ?? 0} players · click a row to edit
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">Players</h1>
+            <p className="mt-1 text-slate-400 truncate">
+              {tournament.name}
+              <span className="text-slate-500"> · {players?.length ?? 0}</span>
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex items-center gap-2 shrink-0">
           <ImportPlayersDialog tournamentId={tournamentId} />
           <CreatePlayerDialog tournamentId={tournamentId} />
         </div>

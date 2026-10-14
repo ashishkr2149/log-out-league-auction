@@ -19,11 +19,12 @@ export function EditTeamButton({ tournamentId, team }: EditTeamButtonProps) {
       <Button
         type="button"
         variant="outline"
-        className="border-slate-700 text-slate-300 shrink-0"
+        className="border-slate-700 text-slate-300 shrink-0 size-9 sm:size-auto sm:h-10 sm:px-4"
+        aria-label="Edit Team"
         onClick={() => setOpen(true)}
       >
-        <Pencil className="mr-2 h-4 w-4" />
-        Edit Team
+        <Pencil className="h-4 w-4 sm:mr-2" />
+        <span className="hidden sm:inline">Edit Team</span>
       </Button>
       <EditTeamDialog
         tournamentId={tournamentId}

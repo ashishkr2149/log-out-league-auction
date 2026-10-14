@@ -91,10 +91,22 @@ export default async function TeamDetailPage({ params }: Props) {
     })
     .filter(Boolean) as Array<PlayerEmbed & { final_price: number; sold_at: string }>;
 
+  const stats = [
+    { label: 'Purse', fullLabel: 'Initial Purse', value: money(team.initial_purse), color: 'text-white' },
+    { label: 'Spent', fullLabel: 'Spent', value: money(spent), color: 'text-red-400' },
+    { label: 'Left', fullLabel: 'Remaining', value: money(remaining), color: 'text-green-400' },
+    {
+      label: 'Roster',
+      fullLabel: 'Roster',
+      value: `${effectiveRoster}/${team.max_roster_size}`,
+      color: 'text-white',
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-3 sm:gap-4 min-w-0">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <Link href={`/dashboard/tournaments/${tournamentId}/teams`}>
             <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white shrink-0">
               <ArrowLeft className="h-5 w-5" />
@@ -102,7 +114,7 @@ export default async function TeamDetailPage({ params }: Props) {
           </Link>
           <div className="flex items-center gap-3 min-w-0">
             <div
-              className="flex h-12 w-12 items-center justify-center rounded-xl text-sm font-bold shrink-0"
+              className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl text-sm font-bold shrink-0"
               style={{
                 backgroundColor: team.primary_color,
                 color: team.secondary_color,
@@ -131,33 +143,20 @@ export default async function TeamDetailPage({ params }: Props) {
         <EditTeamButton tournamentId={tournamentId} team={team} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card className="border-slate-800 bg-slate-900/80">
-          <CardContent className="p-4">
-            <p className="text-xs text-slate-400">Initial Purse</p>
-            <p className="mt-1 text-xl font-bold text-white">{money(team.initial_purse)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-800 bg-slate-900/80">
-          <CardContent className="p-4">
-            <p className="text-xs text-slate-400">Spent</p>
-            <p className="mt-1 text-xl font-bold text-red-400">{money(spent)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-800 bg-slate-900/80">
-          <CardContent className="p-4">
-            <p className="text-xs text-slate-400">Remaining</p>
-            <p className="mt-1 text-xl font-bold text-green-400">{money(remaining)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-slate-800 bg-slate-900/80">
-          <CardContent className="p-4">
-            <p className="text-xs text-slate-400">Roster</p>
-            <p className="mt-1 text-xl font-bold text-white">
-              {effectiveRoster}/{team.max_roster_size}
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-4 gap-2 sm:gap-3">
+        {stats.map((stat) => (
+          <Card key={stat.fullLabel} className="border-slate-800 bg-slate-900/80">
+            <CardContent className="px-1.5 py-3 sm:p-4 text-center sm:text-left">
+              <p className="text-[10px] sm:text-xs text-slate-400 truncate">
+                <span className="sm:hidden">{stat.label}</span>
+                <span className="hidden sm:inline">{stat.fullLabel}</span>
+              </p>
+              <p className={`mt-1 text-sm sm:text-xl font-bold leading-tight ${stat.color}`}>
+                {stat.value}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <Card className="border-slate-800 bg-slate-900/80">

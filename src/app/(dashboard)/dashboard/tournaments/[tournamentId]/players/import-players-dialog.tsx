@@ -93,11 +93,15 @@ export function ImportPlayersDialog({ tournamentId }: ImportPlayersDialogProps) 
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800" />
+          <Button
+            variant="outline"
+            className="border-slate-700 text-slate-300 hover:bg-slate-800 size-9 sm:size-auto sm:h-10 sm:px-4"
+            aria-label="Import CSV"
+          />
         }
       >
-        <Upload className="mr-2 h-4 w-4" />
-        Import CSV
+        <Upload className="h-4 w-4 sm:mr-2" />
+        <span className="hidden sm:inline">Import CSV</span>
       </DialogTrigger>
       <DialogContent className="border-slate-800 bg-slate-900 max-w-3xl max-h-[85vh]">
         <DialogHeader>

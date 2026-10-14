@@ -101,29 +101,29 @@ export function TeamsPageSkeleton() {
 export function TeamDetailSkeleton() {
   return (
     <div className="space-y-6 animate-in fade-in duration-150">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-3 sm:gap-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <Skeleton className="h-10 w-10 rounded-lg shrink-0" />
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-12 w-12 rounded-xl shrink-0" />
+          <div className="flex items-center gap-3 min-w-0">
+            <Skeleton className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl shrink-0" />
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-7 w-28 sm:h-8 sm:w-32" />
                 <Skeleton className="h-5 w-14 rounded-full" />
               </div>
-              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-4 w-36" />
             </div>
           </div>
         </div>
-        <Skeleton className="h-10 w-28 rounded-lg shrink-0" />
+        <Skeleton className="size-9 sm:h-10 sm:w-28 rounded-lg shrink-0" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-4 gap-2 sm:gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="border-slate-800 bg-slate-900/80">
-            <CardContent className="p-4 space-y-2">
-              <Skeleton className="h-3 w-20" />
-              <Skeleton className="h-7 w-16" />
+            <CardContent className="px-1.5 py-3 sm:p-4 space-y-2 text-center sm:text-left">
+              <Skeleton className="h-3 w-10 sm:w-16 mx-auto sm:mx-0" />
+              <Skeleton className="h-5 w-12 sm:h-7 sm:w-16 mx-auto sm:mx-0" />
             </CardContent>
           </Card>
         ))}

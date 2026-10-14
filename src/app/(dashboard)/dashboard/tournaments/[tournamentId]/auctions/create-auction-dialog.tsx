@@ -66,10 +66,15 @@ export function CreateAuctionDialog({ tournamentId, tournamentName }: CreateAuct
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-        render={<Button className="bg-red-600 hover:bg-red-700 text-white" />}
+        render={
+          <Button
+            className="bg-red-600 hover:bg-red-700 text-white size-9 sm:size-auto sm:h-10 sm:px-4"
+            aria-label="New Auction"
+          />
+        }
       >
-        <Plus className="mr-2 h-4 w-4" />
-        New Auction
+        <Plus className="h-4 w-4 sm:mr-2" />
+        <span className="hidden sm:inline">New Auction</span>
       </DialogTrigger>
       <DialogContent className="border-slate-800 bg-slate-900 max-w-md">
         <DialogHeader>
