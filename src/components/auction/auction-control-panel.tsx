@@ -239,8 +239,8 @@ export function AuctionControlPanel({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-3 min-w-0">
+      <div className="flex items-start justify-between gap-2 sm:gap-3">
+        <div className="flex items-start gap-2 sm:gap-3 min-w-0">
           <Link href={`/dashboard/tournaments/${initialAuction.tournament_id}`} className="shrink-0">
             <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
               <ArrowLeft className="h-5 w-5" />
@@ -251,17 +251,27 @@ export function AuctionControlPanel({
             <p className="text-sm text-slate-400 truncate">{initialAuction.tournament?.name}</p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 pl-12 sm:pl-0">
+        <div className="flex flex-wrap items-center gap-2 sm:pl-0">
           <Link href={`/dashboard/auctions/${initialAuction.id}/settings`}>
-            <Button variant="outline" size="sm" className="border-slate-700 text-slate-300">
-              <Settings className="mr-1.5 h-3.5 w-3.5" />
-              Settings
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-slate-700 text-slate-300 size-9 p-0 sm:size-auto sm:h-8 sm:px-3"
+              aria-label="Settings"
+            >
+              <Settings className="h-3.5 w-3.5 sm:mr-1.5" />
+              <span className="hidden sm:inline">Settings</span>
             </Button>
           </Link>
           <Link href={`/dashboard/auctions/${initialAuction.id}/overlay-preview`}>
-            <Button variant="outline" size="sm" className="border-slate-700 text-slate-300">
-              <MonitorPlay className="mr-1.5 h-3.5 w-3.5" />
-              Overlay
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-slate-700 text-slate-300 size-9 p-0 sm:size-auto sm:h-8 sm:px-3"
+              aria-label="Overlay"
+            >
+              <MonitorPlay className="h-3.5 w-3.5 sm:mr-1.5" />
+              <span className="hidden sm:inline">Overlay</span>
             </Button>
           </Link>
           {connected ? (
@@ -648,17 +658,17 @@ export function AuctionControlPanel({
                                   )
                                 }
                                 disabled={!!isLoading}
-                                className="w-full justify-start border-slate-700 text-slate-300 hover:bg-slate-800"
+                                className="w-full justify-start gap-2 border-slate-700 text-slate-300 hover:bg-slate-800"
                               >
                                 {isLoading === `nominate-${ap.id}` ? (
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  <Loader2 className="h-4 w-4 animate-spin shrink-0" />
                                 ) : (
-                                  <SkipForward className="mr-2 h-4 w-4" />
+                                  <SkipForward className="h-4 w-4 shrink-0" />
                                 )}
-                                <span className="truncate">
+                                <span className="truncate min-w-0 text-left">
                                   #{ap.auction_order} {ap.player?.display_name ?? 'Unknown'}
                                 </span>
-                                <span className="ml-auto text-xs text-slate-500">
+                                <span className="ml-auto text-xs text-slate-500 shrink-0">
                                   {money(ap.base_price)}
                                 </span>
                               </Button>

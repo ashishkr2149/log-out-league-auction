@@ -20,12 +20,60 @@ interface PlayersTableProps {
   players: Player[];
 }
 
+function statusBadgeClass(status: Player['status']) {
+  if (status === 'sold') return 'border-green-600 text-green-400';
+  if (status === 'unsold') return 'border-red-600 text-red-400';
+  if (status === 'in_auction') return 'border-yellow-600 text-yellow-400';
+  return 'border-slate-600 text-slate-400';
+}
+
 export function PlayersTable({ tournamentId, players }: PlayersTableProps) {
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
 
   return (
     <>
-      <div className="overflow-x-auto">
+      {/* Mobile: compact cards */}
+      <div className="md:hidden divide-y divide-slate-800">
+        {players.map((player, i) => (
+          <button
+            key={player.id}
+            type="button"
+            onClick={() => setEditingPlayer(player)}
+            className="w-full text-left px-3 py-3 hover:bg-slate-800/50 transition-colors"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 shrink-0 w-5">
+                    {player.auction_order ?? i + 1}
+                  </span>
+                  <span className="font-medium text-white truncate">{player.name}</span>
+                </div>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2 pl-7">
+                  <Badge variant="outline" className="border-slate-600 text-slate-300 text-[10px]">
+                    {getRoleLabel(player.role)}
+                  </Badge>
+                  <span className="text-xs text-slate-500 font-mono">
+                    {formatCurrency(player.base_price)}
+                  </span>
+                  {player.category ? (
+                    <span className="text-xs text-slate-500 truncate">{player.category}</span>
+                  ) : null}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Badge variant="outline" className={statusBadgeClass(player.status)}>
+                  {getPlayerStatusLabel(player.status)}
+                </Badge>
+                <Pencil className="h-3.5 w-3.5 text-slate-500" />
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden md:block overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="border-slate-800 hover:bg-transparent">
@@ -75,18 +123,7 @@ export function PlayersTable({ tournamentId, players }: PlayersTableProps) {
                 </TableCell>
                 <TableCell className="text-slate-400">{player.category ?? '-'}</TableCell>
                 <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={
-                      player.status === 'sold'
-                        ? 'border-green-600 text-green-400'
-                        : player.status === 'unsold'
-                          ? 'border-red-600 text-red-400'
-                          : player.status === 'in_auction'
-                            ? 'border-yellow-600 text-yellow-400'
-                            : 'border-slate-600 text-slate-400'
-                    }
-                  >
+                  <Badge variant="outline" className={statusBadgeClass(player.status)}>
                     {getPlayerStatusLabel(player.status)}
                   </Badge>
                 </TableCell>

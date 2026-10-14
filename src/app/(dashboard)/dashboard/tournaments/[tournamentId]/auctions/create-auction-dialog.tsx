@@ -76,7 +76,7 @@ export function CreateAuctionDialog({ tournamentId, tournamentName }: CreateAuct
         <Plus className="h-4 w-4 sm:mr-2" />
         <span className="hidden sm:inline">New Auction</span>
       </DialogTrigger>
-      <DialogContent className="border-slate-800 bg-slate-900 max-w-md">
+      <DialogContent className="border-slate-800 bg-slate-900 max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-white">Create New Auction</DialogTitle>
           <DialogDescription className="text-slate-400">

@@ -35,15 +35,15 @@ export default async function OverlayPreviewPage({ params }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4 min-w-0">
         <Link href={`/dashboard/auctions/${auctionId}/control`}>
-          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <div>
-          <h1 className="text-3xl font-bold text-white">Overlay Preview</h1>
-          <p className="mt-1 text-slate-400">{auction.name}</p>
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Overlay Preview</h1>
+          <p className="mt-1 text-slate-400 truncate">{auction.name}</p>
         </div>
       </div>
 

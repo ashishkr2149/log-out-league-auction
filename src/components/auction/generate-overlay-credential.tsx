@@ -84,28 +84,32 @@ export function GenerateOverlayCredential({ auctionId }: GenerateOverlayCredenti
           <p className="text-xs text-amber-300">
             Copy this URL now. The raw token is only shown once for security.
           </p>
-          <div className="flex items-center gap-2">
-            <code className="flex-1 rounded bg-slate-900 px-3 py-2 text-xs text-slate-200 font-mono break-all">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+            <code className="flex-1 min-w-0 rounded bg-slate-900 px-3 py-2 text-xs text-slate-200 font-mono break-all">
               {revealed ? overlayUrl : overlayUrl.replace(/\/overlay\/.+/, '/overlay/••••••••')}
             </code>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="border-slate-700 text-slate-300 shrink-0"
-              onClick={() => setRevealed((v) => !v)}
-            >
-              {revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="border-slate-700 text-slate-300 shrink-0"
-              onClick={handleCopy}
-            >
-              {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
-            </Button>
+            <div className="flex gap-2 shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="border-slate-700 text-slate-300"
+                onClick={() => setRevealed((v) => !v)}
+                aria-label={revealed ? 'Hide URL' : 'Show URL'}
+              >
+                {revealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="border-slate-700 text-slate-300"
+                onClick={handleCopy}
+                aria-label="Copy URL"
+              >
+                {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
         </div>
       )}

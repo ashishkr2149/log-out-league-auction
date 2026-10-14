@@ -141,101 +141,188 @@ export default async function AuctionResultsPage({ params }: Props) {
 
       {/* Team Summary */}
       <Card className="border-slate-800 bg-slate-900/80">
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle className="text-white">Team Summary</CardTitle>
         </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-slate-800">
-                <TableHead className="text-slate-400">Team</TableHead>
-                <TableHead className="text-slate-400">Captain</TableHead>
-                <TableHead className="text-slate-400">Initial Purse</TableHead>
-                <TableHead className="text-slate-400">Spent</TableHead>
-                <TableHead className="text-slate-400">Remaining</TableHead>
-                <TableHead className="text-slate-400">Players</TableHead>
-                <TableHead className="text-slate-400">Slots Left</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {teamStats.map((team) => (
-                <TableRow key={team.id} className="border-slate-800">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="h-8 w-8 rounded-md flex items-center justify-center text-xs font-bold"
-                        style={{ backgroundColor: team.primary_color, color: team.secondary_color }}
-                      >
-                        {team.short_name.slice(0, 2)}
-                      </div>
-                      <span className="text-white font-medium">{team.name}</span>
+        <CardContent className="p-0">
+          <div className="md:hidden divide-y divide-slate-800">
+            {teamStats.map((team) => {
+              const effective = getEffectiveRosterCount(team);
+              return (
+                <div key={team.id} className="px-4 py-3 space-y-2">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="h-8 w-8 rounded-md flex items-center justify-center text-xs font-bold shrink-0"
+                      style={{ backgroundColor: team.primary_color, color: team.secondary_color }}
+                    >
+                      {team.short_name.slice(0, 2)}
                     </div>
-                  </TableCell>
-                  <TableCell className="text-slate-300">{team.captain_name ?? '—'}</TableCell>
-                  <TableCell className="text-white">{money(team.initial_purse)}</TableCell>
-                  <TableCell className="text-red-400">{money(team.spent)}</TableCell>
-                  <TableCell className="text-green-400 font-bold">{money(team.remaining_purse)}</TableCell>
-                  <TableCell className="text-white">
-                    {getEffectiveRosterCount(team)}
-                    <span className="text-slate-500 text-xs ml-1">
-                      ({team.roster_count} bought{team.captain_name ? ' + C' : ''})
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-slate-400">
-                    {Math.max(0, team.max_roster_size - getEffectiveRosterCount(team))}
-                  </TableCell>
+                    <div className="min-w-0">
+                      <p className="font-medium text-white truncate">{team.name}</p>
+                      <p className="text-xs text-slate-500 truncate">
+                        {team.captain_name ? `C: ${team.captain_name}` : 'No captain'}
+                      </p>
+                    </div>
+                    <p className="ml-auto text-sm font-bold text-green-400 shrink-0">
+                      {money(team.remaining_purse)}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-xs pl-11">
+                    <div>
+                      <p className="text-slate-500">Spent</p>
+                      <p className="text-red-400 font-medium">{money(team.spent)}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500">Roster</p>
+                      <p className="text-white font-medium">
+                        {effective}/{team.max_roster_size}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500">Left</p>
+                      <p className="text-slate-300 font-medium">
+                        {Math.max(0, team.max_roster_size - effective)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-slate-800">
+                  <TableHead className="text-slate-400">Team</TableHead>
+                  <TableHead className="text-slate-400">Captain</TableHead>
+                  <TableHead className="text-slate-400">Initial Purse</TableHead>
+                  <TableHead className="text-slate-400">Spent</TableHead>
+                  <TableHead className="text-slate-400">Remaining</TableHead>
+                  <TableHead className="text-slate-400">Players</TableHead>
+                  <TableHead className="text-slate-400">Slots Left</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {teamStats.map((team) => (
+                  <TableRow key={team.id} className="border-slate-800">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="h-8 w-8 rounded-md flex items-center justify-center text-xs font-bold"
+                          style={{
+                            backgroundColor: team.primary_color,
+                            color: team.secondary_color,
+                          }}
+                        >
+                          {team.short_name.slice(0, 2)}
+                        </div>
+                        <span className="text-white font-medium">{team.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-slate-300">{team.captain_name ?? '—'}</TableCell>
+                    <TableCell className="text-white">{money(team.initial_purse)}</TableCell>
+                    <TableCell className="text-red-400">{money(team.spent)}</TableCell>
+                    <TableCell className="text-green-400 font-bold">
+                      {money(team.remaining_purse)}
+                    </TableCell>
+                    <TableCell className="text-white">
+                      {getEffectiveRosterCount(team)}
+                      <span className="text-slate-500 text-xs ml-1">
+                        ({team.roster_count} bought{team.captain_name ? ' + C' : ''})
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-slate-400">
+                      {Math.max(0, team.max_roster_size - getEffectiveRosterCount(team))}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
       {/* Sold Players */}
       <Card className="border-slate-800 bg-slate-900/80">
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle className="text-white">Sold Players ({soldPlayers.length})</CardTitle>
         </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-slate-800">
-                <TableHead className="text-slate-400">#</TableHead>
-                <TableHead className="text-slate-400">Player</TableHead>
-                <TableHead className="text-slate-400">Role</TableHead>
-                <TableHead className="text-slate-400">Base Price</TableHead>
-                <TableHead className="text-slate-400">Sale Price</TableHead>
-                <TableHead className="text-slate-400">Team</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {soldPlayers.map((ap, i) => (
-                <TableRow key={ap.id} className="border-slate-800">
-                  <TableCell className="text-slate-500">{i + 1}</TableCell>
-                  <TableCell className="text-white font-medium">{ap.player?.display_name}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="border-slate-600 text-slate-300">
-                      {getRoleLabel(ap.player?.role ?? 'other')}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-slate-400 font-mono text-sm">
-                    {money(ap.base_price)}
-                  </TableCell>
-                  <TableCell className="text-green-400 font-bold font-mono">
-                    {money(ap.final_sale_price ?? 0)}
-                  </TableCell>
-                  <TableCell>
+        <CardContent className="p-0">
+          <div className="md:hidden divide-y divide-slate-800">
+            {soldPlayers.map((ap, i) => (
+              <div key={ap.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="text-white font-medium truncate">
+                    <span className="text-slate-500 text-xs mr-2">{i + 1}</span>
+                    {ap.player?.display_name}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5 truncate">
+                    {getRoleLabel(ap.player?.role ?? 'other')}
+                    {' · '}
                     <span
-                      className="font-medium"
-                      style={{ color: (ap.winning_team as unknown as { primary_color: string })?.primary_color }}
+                      style={{
+                        color: (ap.winning_team as unknown as { primary_color: string })
+                          ?.primary_color,
+                      }}
                     >
                       {(ap.winning_team as unknown as { name: string })?.name ?? '-'}
                     </span>
-                  </TableCell>
+                  </p>
+                </div>
+                <span className="text-green-400 font-bold font-mono text-sm shrink-0">
+                  {money(ap.final_sale_price ?? 0)}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-slate-800">
+                  <TableHead className="text-slate-400">#</TableHead>
+                  <TableHead className="text-slate-400">Player</TableHead>
+                  <TableHead className="text-slate-400">Role</TableHead>
+                  <TableHead className="text-slate-400">Base Price</TableHead>
+                  <TableHead className="text-slate-400">Sale Price</TableHead>
+                  <TableHead className="text-slate-400">Team</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {soldPlayers.map((ap, i) => (
+                  <TableRow key={ap.id} className="border-slate-800">
+                    <TableCell className="text-slate-500">{i + 1}</TableCell>
+                    <TableCell className="text-white font-medium">
+                      {ap.player?.display_name}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="border-slate-600 text-slate-300">
+                        {getRoleLabel(ap.player?.role ?? 'other')}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-slate-400 font-mono text-sm">
+                      {money(ap.base_price)}
+                    </TableCell>
+                    <TableCell className="text-green-400 font-bold font-mono">
+                      {money(ap.final_sale_price ?? 0)}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className="font-medium"
+                        style={{
+                          color: (ap.winning_team as unknown as { primary_color: string })
+                            ?.primary_color,
+                        }}
+                      >
+                        {(ap.winning_team as unknown as { name: string })?.name ?? '-'}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 

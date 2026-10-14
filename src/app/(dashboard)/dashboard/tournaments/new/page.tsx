@@ -50,15 +50,15 @@ export default function NewTournamentPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4 min-w-0">
         <Link href="/dashboard/tournaments">
-          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <div>
-          <h1 className="text-3xl font-bold text-white">New Tournament</h1>
-          <p className="mt-1 text-slate-400">Create a new Log Out League tournament</p>
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">New Tournament</h1>
+          <p className="mt-1 text-slate-400 truncate">Create a new Log Out League tournament</p>
         </div>
       </div>
 
@@ -108,7 +108,7 @@ export default function NewTournamentPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="primary_color" className="text-slate-300">Primary Color</Label>
                 <div className="flex items-center gap-3">
@@ -116,11 +116,11 @@ export default function NewTournamentPage() {
                     id="primary_color"
                     type="color"
                     {...register('primary_color')}
-                    className="h-10 w-14 border-slate-700 bg-slate-800 cursor-pointer p-1"
+                    className="h-10 w-14 border-slate-700 bg-slate-800 cursor-pointer p-1 shrink-0"
                   />
                   <Input
                     {...register('primary_color')}
-                    className="border-slate-700 bg-slate-800 text-white font-mono text-sm"
+                    className="border-slate-700 bg-slate-800 text-white font-mono text-sm min-w-0"
                   />
                 </div>
               </div>
@@ -131,30 +131,30 @@ export default function NewTournamentPage() {
                     id="secondary_color"
                     type="color"
                     {...register('secondary_color')}
-                    className="h-10 w-14 border-slate-700 bg-slate-800 cursor-pointer p-1"
+                    className="h-10 w-14 border-slate-700 bg-slate-800 cursor-pointer p-1 shrink-0"
                   />
                   <Input
                     {...register('secondary_color')}
-                    className="border-slate-700 bg-slate-800 text-white font-mono text-sm"
+                    className="border-slate-700 bg-slate-800 text-white font-mono text-sm min-w-0"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-3 pt-4">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
+              <Link href="/dashboard/tournaments" className="sm:w-auto">
+                <Button type="button" variant="outline" className="w-full border-slate-700 text-slate-300">
+                  Cancel
+                </Button>
+              </Link>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="bg-red-600 hover:bg-red-700 text-white sm:flex-1"
               >
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create Tournament
               </Button>
-              <Link href="/dashboard/tournaments">
-                <Button type="button" variant="outline" className="border-slate-700 text-slate-300">
-                  Cancel
-                </Button>
-              </Link>
             </div>
           </form>
         </CardContent>

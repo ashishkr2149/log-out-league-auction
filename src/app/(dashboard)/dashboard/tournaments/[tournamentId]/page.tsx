@@ -130,11 +130,12 @@ export default async function TournamentDetailPage({ params }: Props) {
                   <CardTitle className="text-white text-base sm:text-lg">{item.title}</CardTitle>
                   <Button
                     size="sm"
-                    className="bg-red-600 hover:bg-red-700 text-white pointer-events-none shrink-0"
+                    className="bg-red-600 hover:bg-red-700 text-white pointer-events-none shrink-0 size-8 p-0 sm:size-auto sm:h-8 sm:px-3"
                     tabIndex={-1}
+                    aria-hidden
                   >
-                    <Plus className="mr-1 h-3 w-3" />
-                    Manage
+                    <Plus className="h-3 w-3 sm:mr-1" />
+                    <span className="hidden sm:inline">Manage</span>
                   </Button>
                 </div>
                 <CardDescription className="text-slate-400">{item.description}</CardDescription>

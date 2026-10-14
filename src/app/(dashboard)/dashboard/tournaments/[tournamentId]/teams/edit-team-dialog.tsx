@@ -85,7 +85,7 @@ export function EditTeamDialog({ tournamentId, team, open, onOpenChange }: EditT
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-slate-800 bg-slate-900 max-w-md">
+      <DialogContent className="border-slate-800 bg-slate-900 max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-white">Edit Team</DialogTitle>
           <DialogDescription className="text-slate-400">

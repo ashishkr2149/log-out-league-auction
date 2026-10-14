@@ -111,12 +111,14 @@ export function TeamCards({ tournamentId, teams }: TeamCardsProps) {
                     </span>
                   </div>
                   <div className="h-px bg-slate-800" />
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Roster</span>
-                    <span className={`font-medium ${isFull ? 'text-green-400' : 'text-white'}`}>
-                      {effectiveRoster} / {team.max_roster_size}
+                  <div className="flex justify-between text-sm gap-2">
+                    <span className="text-slate-400 shrink-0">Roster</span>
+                    <span
+                      className={`font-medium text-right ${isFull ? 'text-green-400' : 'text-white'}`}
+                    >
+                      {effectiveRoster}/{team.max_roster_size}
                       {team.captain_name ? (
-                        <span className="text-slate-500 font-normal">
+                        <span className="text-slate-500 font-normal hidden sm:inline">
                           {' '}
                           ({team.roster_count} bought + captain)
                         </span>

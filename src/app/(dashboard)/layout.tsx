@@ -112,7 +112,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Button
               variant="ghost"
               size="icon"
-              className="fixed left-4 top-4 z-40 lg:hidden text-slate-400"
+              className="fixed left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-40 lg:hidden text-slate-400 bg-slate-900/80 backdrop-blur border border-slate-800"
             />
           }
         >
@@ -125,7 +125,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main content */}
       <main className="lg:pl-64">
-        <div className="mx-auto max-w-7xl px-4 pb-8 pt-16 sm:px-6 lg:p-8 lg:pt-8">
+        <div className="mx-auto max-w-7xl px-3 pt-16 sm:px-6 lg:p-8 lg:pt-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
           {children}
         </div>
       </main>
