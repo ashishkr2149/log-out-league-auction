@@ -9,39 +9,64 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
+import { sanitizeRedirectPath } from '@/lib/auth/redirect';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [pendingVerify, setPendingVerify] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirectTo') ?? '/dashboard';
+  const redirectTo = sanitizeRedirectPath(searchParams.get('redirectTo'));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
+    setPendingVerify(false);
 
     try {
       const supabase = createClient();
 
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const name = displayName.trim();
+        if (!name) {
+          toast.error('Display name is required');
+          return;
+        }
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/dashboard`,
+            data: { full_name: name, display_name: name },
           },
         });
         if (error) throw error;
-        toast.success('Check your email for the confirmation link');
+        if (data.user && !data.session) {
+          setPendingVerify(true);
+          toast.success('Check your email to verify your account before creating tournaments or auctions');
+        } else {
+          toast.success('Account created');
+          router.push(redirectTo);
+          router.refresh();
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
+        if (data.user && !data.user.email_confirmed_at) {
+          toast.message('Email not verified yet', {
+            description:
+              'You can browse after sign-in, but creating tournaments, teams, or auctions requires a verified email.',
+          });
+        } else {
+          toast.success('Signed in');
+        }
         router.push(redirectTo);
         router.refresh();
       }
@@ -53,20 +78,44 @@ function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md border-slate-800 bg-slate-900/80 backdrop-blur-sm">
+    <Card className="w-full max-w-md border-border bg-card shadow-sm">
       <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 ring-2 ring-red-500/30">
-          <Trophy className="h-8 w-8 text-red-500" />
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 ring-2 ring-primary/25">
+          <Trophy className="h-8 w-8 text-primary" />
         </div>
-        <CardTitle className="text-2xl font-bold text-white">Log Out League</CardTitle>
-        <CardDescription className="text-slate-400">
-          {isSignUp ? 'Create your account' : 'Sign in to the auction platform'}
+        <CardTitle className="font-display text-2xl font-semibold text-foreground">
+          Log Out League
+        </CardTitle>
+        <CardDescription className="text-muted-foreground">
+          {isSignUp
+            ? 'Create your account — verify email before creating content'
+            : 'Sign in to jump into auctions and teams'}
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {pendingVerify && (
+          <div className="mb-4 rounded-2xl border border-amber-500/40 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            We sent a confirmation link to <span className="font-medium">{email}</span>.
+            Verify that address before creating tournaments, teams, players, or auctions.
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
+          {isSignUp && (
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Display name</Label>
+              <Input
+                id="displayName"
+                type="text"
+                placeholder="Your name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                required
+                className="rounded-full"
+              />
+            </div>
+          )}
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-slate-300">Email</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
@@ -74,11 +123,11 @@ function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
+              className="rounded-full"
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-slate-300">Password</Label>
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
@@ -87,23 +136,19 @@ function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
+              className="rounded-full"
             />
           </div>
-          <Button
-            type="submit"
-            className="w-full bg-red-600 hover:bg-red-700 text-white"
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSignUp ? 'Create Account' : 'Sign In'}
+            {isSignUp ? 'Create account' : 'Sign in'}
           </Button>
         </form>
         <div className="mt-4 text-center">
           <button
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm text-slate-400 hover:text-white transition-colors"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
           </button>
@@ -115,12 +160,12 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4">
+    <div className="flex min-h-dvh items-center justify-center bg-background p-4">
       <Suspense
         fallback={
-          <Card className="w-full max-w-md border-slate-800 bg-slate-900/80 backdrop-blur-sm">
+          <Card className="w-full max-w-md border-border bg-card">
             <CardContent className="flex items-center justify-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </CardContent>
           </Card>
         }

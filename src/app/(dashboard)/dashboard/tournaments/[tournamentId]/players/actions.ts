@@ -1,20 +1,55 @@
 'use server';
 
-import { createClient } from '@/lib/supabase/server';
-import { requireUser } from '@/lib/auth/permissions';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
+import {
+  TEAM_MANAGER_ROLES,
+  requireServiceGrant,
+  requireTournamentRole,
+  requireVerifiedUser,
+} from '@/lib/auth/permissions';
+import { upsertPersonByContact } from '@/lib/auth/person';
 import { playerSchema, PlayerFormData, csvPlayerSchema } from '@/lib/validation/schemas';
 import { revalidatePath } from 'next/cache';
 
+function emptyToNull(value: string | null | undefined): string | null {
+  if (value == null) return null;
+  const trimmed = value.trim();
+  return trimmed === '' ? null : trimmed;
+}
+
 export async function createPlayer(tournamentId: string, data: PlayerFormData) {
-  await requireUser();
+  await requireVerifiedUser();
+  await requireServiceGrant('tournaments');
+  await requireTournamentRole(tournamentId, TEAM_MANAGER_ROLES);
   const validated = playerSchema.parse(data);
   const supabase = await createClient();
+
+  const contactEmail = emptyToNull(validated.contact_email);
+  const contactPhone = emptyToNull(validated.contact_phone);
+
+  let personId: string | null = null;
+  if (contactEmail || contactPhone) {
+    const result = await upsertPersonByContact({
+      email: contactEmail,
+      phone: contactPhone,
+      displayName: validated.name,
+    });
+    if ('error' in result) {
+      return { error: result.error };
+    }
+    personId = result.person.id;
+  }
+
+  const { contact_email: _e, contact_phone: _p, ...playerFields } = validated;
 
   const { data: player, error } = await supabase
     .from('players')
     .insert({
-      ...validated,
+      ...playerFields,
       tournament_id: tournamentId,
+      person_id: personId,
+      contact_email: contactEmail,
+      contact_phone: contactPhone,
     })
     .select()
     .single();
@@ -24,17 +59,56 @@ export async function createPlayer(tournamentId: string, data: PlayerFormData) {
   }
 
   revalidatePath(`/dashboard/tournaments/${tournamentId}/players`);
-  return { success: true, playerId: player.id };
+  return { success: true, playerId: player.id, personId };
 }
 
-export async function updatePlayer(playerId: string, tournamentId: string, data: Partial<PlayerFormData>) {
-  await requireUser();
+export async function updatePlayer(
+  playerId: string,
+  tournamentId: string,
+  data: Partial<PlayerFormData>
+) {
+  await requireVerifiedUser();
+  await requireServiceGrant('tournaments');
+  await requireTournamentRole(tournamentId, TEAM_MANAGER_ROLES);
   const supabase = await createClient();
+  const service = await createServiceClient();
 
-  const { error } = await supabase
-    .from('players')
-    .update(data)
-    .eq('id', playerId);
+  const contactEmail =
+    data.contact_email !== undefined ? emptyToNull(data.contact_email) : undefined;
+  const contactPhone =
+    data.contact_phone !== undefined ? emptyToNull(data.contact_phone) : undefined;
+
+  const patch: Record<string, unknown> = { ...data };
+  delete patch.contact_email;
+  delete patch.contact_phone;
+
+  if (contactEmail !== undefined || contactPhone !== undefined) {
+    const { data: existing } = await service
+      .from('players')
+      .select('person_id, name, contact_email, contact_phone')
+      .eq('id', playerId)
+      .single();
+
+    const email = contactEmail !== undefined ? contactEmail : existing?.contact_email;
+    const phone = contactPhone !== undefined ? contactPhone : existing?.contact_phone;
+
+    if (email || phone) {
+      const result = await upsertPersonByContact({
+        email,
+        phone,
+        displayName: (data.name as string | undefined) ?? existing?.name ?? undefined,
+      });
+      if ('error' in result) {
+        return { error: result.error };
+      }
+      patch.person_id = result.person.id;
+    }
+
+    if (contactEmail !== undefined) patch.contact_email = contactEmail;
+    if (contactPhone !== undefined) patch.contact_phone = contactPhone;
+  }
+
+  const { error } = await supabase.from('players').update(patch).eq('id', playerId);
 
   if (error) {
     return { error: error.message };
@@ -45,10 +119,24 @@ export async function updatePlayer(playerId: string, tournamentId: string, data:
 }
 
 export async function deletePlayer(playerId: string, tournamentId: string) {
-  await requireUser();
+  await requireVerifiedUser();
+  await requireServiceGrant('tournaments');
+  await requireTournamentRole(tournamentId, TEAM_MANAGER_ROLES);
   const supabase = await createClient();
 
-  // Check if player is in any auction
+  const { data: captainTeam } = await supabase
+    .from('teams')
+    .select('id, name')
+    .eq('tournament_id', tournamentId)
+    .eq('captain_player_id', playerId)
+    .maybeSingle();
+
+  if (captainTeam) {
+    return {
+      error: `Cannot delete ${captainTeam.name}'s captain. Change the captain first.`,
+    };
+  }
+
   const { count } = await supabase
     .from('auction_players')
     .select('*', { count: 'exact', head: true })
@@ -58,10 +146,7 @@ export async function deletePlayer(playerId: string, tournamentId: string) {
     return { error: 'Cannot delete a player that has been in an auction. Withdraw them instead.' };
   }
 
-  const { error } = await supabase
-    .from('players')
-    .delete()
-    .eq('id', playerId);
+  const { error } = await supabase.from('players').delete().eq('id', playerId);
 
   if (error) {
     return { error: error.message };
@@ -75,7 +160,9 @@ export async function importPlayersFromCSV(
   tournamentId: string,
   rows: Record<string, unknown>[]
 ) {
-  await requireUser();
+  await requireVerifiedUser();
+  await requireServiceGrant('tournaments');
+  await requireTournamentRole(tournamentId, TEAM_MANAGER_ROLES);
   const supabase = await createClient();
 
   const errors: { row: number; errors: string[] }[] = [];
@@ -84,6 +171,27 @@ export async function importPlayersFromCSV(
   for (let i = 0; i < rows.length; i++) {
     try {
       const validated = csvPlayerSchema.parse(rows[i]);
+      const contactEmail = emptyToNull(
+        validated.contact_email || validated.email || null
+      );
+      const contactPhone = emptyToNull(
+        validated.contact_phone || validated.phone || null
+      );
+
+      let personId: string | null = null;
+      if (contactEmail || contactPhone) {
+        const result = await upsertPersonByContact({
+          email: contactEmail,
+          phone: contactPhone,
+          displayName: validated.name,
+        });
+        if ('error' in result) {
+          errors.push({ row: i + 1, errors: [result.error] });
+          continue;
+        }
+        personId = result.person.id;
+      }
+
       validPlayers.push({
         tournament_id: tournamentId,
         name: validated.name,
@@ -97,6 +205,9 @@ export async function importPlayersFromCSV(
         bio: validated.bio || null,
         previous_team: validated.previous_team || null,
         status: 'registered',
+        person_id: personId,
+        contact_email: contactEmail,
+        contact_phone: contactPhone,
       });
     } catch (err) {
       errors.push({
@@ -107,14 +218,17 @@ export async function importPlayersFromCSV(
   }
 
   if (errors.length > 0) {
-    return { error: 'Some rows have validation errors', validationErrors: errors, validCount: validPlayers.length };
+    return {
+      error: 'Some rows have validation errors',
+      validationErrors: errors,
+      validCount: validPlayers.length,
+    };
   }
 
   if (validPlayers.length === 0) {
     return { error: 'No valid players to import' };
   }
 
-  // Check for duplicates by name within the same tournament
   const names = validPlayers.map((p) => p.name as string);
   const { data: existingPlayers } = await supabase
     .from('players')
@@ -130,9 +244,7 @@ export async function importPlayersFromCSV(
     return { error: 'All players already exist in this tournament' };
   }
 
-  const { error: insertError } = await supabase
-    .from('players')
-    .insert(newPlayers);
+  const { error: insertError } = await supabase.from('players').insert(newPlayers);
 
   if (insertError) {
     return { error: `Import failed: ${insertError.message}` };

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useEffectEvent } from 'react';
+import { useState, useCallback, useEffect, useEffectEvent, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -21,6 +21,10 @@ import {
   getEffectiveRosterCount,
   getAuctionSlotsRemaining,
 } from '@/lib/auction/validation';
+import {
+  OVERLAY_STATE_EVENT,
+  auctionOverlayChannelName,
+} from '@/lib/overlay/channel';
 import type {
   Auction,
   Player,
@@ -155,8 +159,28 @@ export function AuctionControlPanel({
     ? (currentBid ?? basePrice) + increment
     : (currentBid ?? basePrice);
 
+  const overlayBroadcastRef = useRef<ReturnType<
+    ReturnType<typeof createClient>['channel']
+  > | null>(null);
+
+  const notifyOverlay = useCallback(() => {
+    void overlayBroadcastRef.current?.send({
+      type: 'broadcast',
+      event: OVERLAY_STATE_EVENT,
+      payload: { auctionId: initialAuction.id, at: Date.now() },
+    });
+  }, [initialAuction.id]);
+
   useEffect(() => {
     const supabase = createClient();
+
+    const overlayChannel = supabase
+      .channel(auctionOverlayChannelName(initialAuction.id), {
+        config: { broadcast: { ack: false } },
+      })
+      .subscribe();
+    overlayBroadcastRef.current = overlayChannel;
+
     const channel = supabase
       .channel(`auction-${initialAuction.id}`)
       .on(
@@ -175,6 +199,7 @@ export function AuctionControlPanel({
           setCurrentBid(updated.current_bid_amount);
           setCurrentTeamId(updated.current_bid_team_id);
           setCurrentPlayerId(updated.current_player_id);
+          notifyOverlay();
           router.refresh();
         }
       )
@@ -183,9 +208,11 @@ export function AuctionControlPanel({
       });
 
     return () => {
-      supabase.removeChannel(channel);
+      overlayBroadcastRef.current = null;
+      void supabase.removeChannel(channel);
+      void supabase.removeChannel(overlayChannel);
     };
-  }, [initialAuction.id, router]);
+  }, [initialAuction.id, router, notifyOverlay]);
 
   const handleAction = useCallback(
     async (
@@ -207,6 +234,7 @@ export function AuctionControlPanel({
           applyActionState(result);
           if (successMessage) toast.success(successMessage);
           setCustomBid('');
+          notifyOverlay();
           router.refresh();
         }
       } catch (err) {
@@ -215,7 +243,7 @@ export function AuctionControlPanel({
         setIsLoading(null);
       }
     },
-    [isLoading, router]
+    [isLoading, router, notifyOverlay]
   );
 
   const placeTeamBid = (amount: number) => {
@@ -311,7 +339,8 @@ export function AuctionControlPanel({
 
       <div className="grid gap-4 lg:grid-cols-12">
         {/* Current Player */}
-        <div className="lg:col-span-4 space-y-4 order-1">
+        {/* Mobile: Controls first (thumb zone); desktop: Player | Controls | Purses */}
+        <div className="order-2 space-y-4 lg:order-1 lg:col-span-4">
           <Card className="border-slate-800 bg-slate-900/80">
             <CardHeader className="pb-3">
               <CardTitle className="text-white text-sm uppercase tracking-wider">
@@ -379,7 +408,7 @@ export function AuctionControlPanel({
         </div>
 
         {/* Controls */}
-        <div className="lg:col-span-4 space-y-4 order-2">
+        <div className="order-1 space-y-4 lg:order-2 lg:col-span-4">
           <Card className="border-slate-800 bg-slate-900/80">
             <CardHeader className="pb-3">
               <CardTitle className="text-white text-sm uppercase tracking-wider">
@@ -779,7 +808,7 @@ export function AuctionControlPanel({
         </div>
 
         {/* Teams / Events / Sold */}
-        <div className="lg:col-span-4 space-y-4 order-3">
+        <div className="order-3 space-y-4 lg:col-span-4">
           <Card className="border-slate-800 bg-slate-900/80">
             <CardHeader className="pb-3">
               <CardTitle className="text-white text-sm uppercase tracking-wider">
@@ -864,8 +893,8 @@ export function AuctionControlPanel({
                         key={event.id}
                         className="flex items-start gap-2 text-xs border-b border-slate-800/50 pb-2"
                       >
-                        <span className="text-slate-600 shrink-0">
-                          {new Date(event.created_at).toLocaleTimeString()}
+                        <span className="text-slate-600 shrink-0" suppressHydrationWarning>
+                          {new Date(event.created_at).toISOString().slice(11, 19)}
                         </span>
                         <span className="text-slate-400">{event.event_type.replace(/_/g, ' ')}</span>
                       </div>

@@ -1,7 +1,11 @@
 'use server';
 
 import { createClient, createServiceClient } from '@/lib/supabase/server';
-import { requireUser } from '@/lib/auth/permissions';
+import {
+  requireAuctionOperator,
+  requireServiceGrant,
+  requireUser,
+} from '@/lib/auth/permissions';
 import { isValidTransition } from '@/lib/auction/state';
 import { getCaptainSlot } from '@/lib/auction/validation';
 import {
@@ -9,6 +13,11 @@ import {
   AuctionPhase,
   AuctionEventType,
 } from '@/types/database';
+
+async function assertCanOperateAuction(auctionId: string) {
+  await requireServiceGrant('auctions');
+  await requireAuctionOperator(auctionId);
+}
 
 export type AuctionActionState = {
   newVersion: number;
@@ -78,6 +87,7 @@ export async function transitionAuctionStatus(
   stateVersion: number
 ): Promise<AuctionActionResult> {
   const user = await requireUser();
+  await assertCanOperateAuction(auctionId);
   const supabase = await createClient();
 
   // Fetch current auction state
@@ -155,6 +165,7 @@ export async function nominatePlayer(
   stateVersion: number
 ): Promise<AuctionActionResult> {
   const user = await requireUser();
+  await assertCanOperateAuction(auctionId);
   const supabase = await createClient();
 
   // Fetch auction
@@ -240,6 +251,7 @@ export async function startBidding(
   stateVersion: number
 ): Promise<AuctionActionResult> {
   const user = await requireUser();
+  await assertCanOperateAuction(auctionId);
   const supabase = await createClient();
 
   const { data: auction, error } = await supabase
@@ -302,6 +314,7 @@ export async function placeBid(
   stateVersion: number
 ): Promise<AuctionActionResult> {
   const user = await requireUser();
+  await assertCanOperateAuction(auctionId);
   const supabase = await createClient();
 
   // Fetch auction
@@ -428,6 +441,7 @@ export async function sellPlayer(
   stateVersion: number
 ): Promise<AuctionActionResult> {
   const user = await requireUser();
+  await assertCanOperateAuction(auctionId);
   const serviceClient = await createServiceClient();
   const supabase = await createClient();
 
@@ -558,6 +572,28 @@ export async function sellPlayer(
     .update({ status: 'sold' })
     .eq('id', playerId);
 
+  // 4b. Phase 1.8: sold players become permanent members of the global franchise
+  const { data: entryTeam } = await serviceClient
+    .from('teams')
+    .select('global_team_id')
+    .eq('id', teamId)
+    .maybeSingle();
+  const { data: soldPlayer } = await serviceClient
+    .from('players')
+    .select('person_id')
+    .eq('id', playerId)
+    .maybeSingle();
+  if (entryTeam?.global_team_id && soldPlayer?.person_id) {
+    await serviceClient.from('team_memberships').upsert(
+      {
+        global_team_id: entryTeam.global_team_id,
+        person_id: soldPlayer.person_id,
+        role: 'member',
+      },
+      { onConflict: 'global_team_id,person_id' }
+    );
+  }
+
   // 5. Update auction state
   const { data: updatedAuction, error: auctionUpdateError } = await serviceClient
     .from('auctions')
@@ -600,6 +636,7 @@ export async function markUnsold(
   stateVersion: number
 ): Promise<AuctionActionResult> {
   const user = await requireUser();
+  await assertCanOperateAuction(auctionId);
   const supabase = await createClient();
 
   const { data: auction, error } = await supabase
@@ -668,6 +705,7 @@ export async function undoLastSale(
   stateVersion: number
 ): Promise<AuctionActionResult> {
   const user = await requireUser();
+  await assertCanOperateAuction(auctionId);
   const serviceClient = await createServiceClient();
   const supabase = await createClient();
 
@@ -779,6 +817,7 @@ export async function undoLastBid(
   stateVersion: number
 ): Promise<AuctionActionResult> {
   const user = await requireUser();
+  await assertCanOperateAuction(auctionId);
   const supabase = await createClient();
 
   const { data: auction, error } = await supabase

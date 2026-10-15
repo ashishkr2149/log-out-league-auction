@@ -1,12 +1,21 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { requireUser } from '@/lib/auth/permissions';
+import {
+  ORGANIZER_ROLES,
+  getAuctionTournamentId,
+  requireOverlayManager,
+  requireServiceGrant,
+  requireTournamentRole,
+  requireVerifiedUser,
+} from '@/lib/auth/permissions';
 import { auctionSchema, AuctionFormData } from '@/lib/validation/schemas';
 import { revalidatePath } from 'next/cache';
 
 export async function createAuction(tournamentId: string, data: AuctionFormData) {
-  const user = await requireUser();
+  const user = await requireVerifiedUser();
+  await requireServiceGrant('auctions');
+  await requireTournamentRole(tournamentId, ORGANIZER_ROLES);
   const validated = auctionSchema.parse(data);
   const supabase = await createClient();
 
@@ -51,7 +60,19 @@ export async function createAuction(tournamentId: string, data: AuctionFormData)
     is_active: true,
   });
 
-  // Add all tournament players to the auction
+  // Add tournament players to the auction (exclude captains / withdrawn)
+  const { data: captainRows } = await supabase
+    .from('teams')
+    .select('captain_player_id')
+    .eq('tournament_id', tournamentId)
+    .not('captain_player_id', 'is', null);
+
+  const captainIds = new Set(
+    (captainRows ?? [])
+      .map((row) => row.captain_player_id)
+      .filter((id): id is string => Boolean(id))
+  );
+
   const { data: players } = await supabase
     .from('players')
     .select('id, base_price, auction_order')
@@ -60,8 +81,10 @@ export async function createAuction(tournamentId: string, data: AuctionFormData)
     .order('auction_order', { ascending: true, nullsFirst: false })
     .order('name');
 
-  if (players && players.length > 0) {
-    const auctionPlayers = players.map((p, i) => ({
+  const eligible = (players ?? []).filter((p) => !captainIds.has(p.id));
+
+  if (eligible.length > 0) {
+    const auctionPlayers = eligible.map((p, i) => ({
       auction_id: auction.id,
       player_id: p.id,
       auction_order: p.auction_order ?? i + 1,
@@ -81,7 +104,13 @@ export async function updateAuctionSettings(
   auctionId: string,
   data: Partial<AuctionFormData>
 ) {
-  await requireUser();
+  await requireVerifiedUser();
+  await requireServiceGrant('auctions');
+  const tournamentId = await getAuctionTournamentId(auctionId);
+  if (!tournamentId) {
+    return { error: 'Auction not found' };
+  }
+  await requireTournamentRole(tournamentId, ORGANIZER_ROLES);
   const supabase = await createClient();
 
   const { error } = await supabase
@@ -99,13 +128,19 @@ export async function updateAuctionSettings(
 
 export async function generateOverlayCredentialAction(
   auctionId: string,
-  label: string = 'OBS Browser Source'
+  label: string = 'OBS Browser Source',
+  expiresAt?: string | null
 ) {
-  await requireUser();
+  const user = await requireVerifiedUser();
+  await requireServiceGrant('overlays');
+  await requireOverlayManager(auctionId);
 
   try {
     const { createOverlayCredential } = await import('@/lib/overlay/credentials');
-    const credential = await createOverlayCredential(auctionId, label);
+    const credential = await createOverlayCredential(auctionId, label, {
+      expiresAt,
+      createdBy: user.id,
+    });
 
     revalidatePath(`/dashboard/auctions/${auctionId}/settings`);
     revalidatePath(`/dashboard/auctions/${auctionId}/overlay-preview`);
@@ -117,10 +152,45 @@ export async function generateOverlayCredentialAction(
       overlayUrl: `${appUrl}/overlay/${credential.token}`,
       label: credential.label,
       id: credential.id,
+      expiresAt: credential.expires_at,
     };
   } catch (err) {
     return {
       error: err instanceof Error ? err.message : 'Failed to generate overlay credential',
+    };
+  }
+}
+
+export async function revokeOverlayCredentialAction(credentialId: string, auctionId: string) {
+  const user = await requireVerifiedUser();
+  await requireServiceGrant('overlays');
+  await requireOverlayManager(auctionId);
+
+  try {
+    const { revokeOverlayCredential } = await import('@/lib/overlay/credentials');
+    await revokeOverlayCredential(credentialId, user.id);
+
+    revalidatePath(`/dashboard/auctions/${auctionId}/settings`);
+    revalidatePath(`/dashboard/auctions/${auctionId}/overlay-preview`);
+    return { success: true };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : 'Failed to revoke overlay credential',
+    };
+  }
+}
+
+export async function listOverlayCredentialsAction(auctionId: string) {
+  await requireVerifiedUser();
+  await requireOverlayManager(auctionId);
+
+  try {
+    const { listOverlayCredentials } = await import('@/lib/overlay/credentials');
+    const credentials = await listOverlayCredentials(auctionId);
+    return { success: true as const, credentials };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : 'Failed to list overlay credentials',
     };
   }
 }

@@ -14,14 +14,17 @@ type TeamWithStats = Team & {
   spent: number;
   remaining_purse: number;
   roster_count: number;
+  qr_slug?: string | null;
 };
 
 interface TeamCardsProps {
   tournamentId: string;
   teams: TeamWithStats[];
+  /** When false, hide purse amounts (viewer restriction). */
+  showPurse?: boolean;
 }
 
-export function TeamCards({ tournamentId, teams }: TeamCardsProps) {
+export function TeamCards({ tournamentId, teams, showPurse = true }: TeamCardsProps) {
   const [editingTeam, setEditingTeam] = useState<TeamWithStats | null>(null);
 
   return (
@@ -34,7 +37,7 @@ export function TeamCards({ tournamentId, teams }: TeamCardsProps) {
           return (
             <Card
               key={team.id}
-              className="border-slate-800 bg-slate-900/80 transition hover:border-slate-600 hover:bg-slate-900 relative"
+              className="border-border bg-card transition hover:border-border hover:bg-card relative"
             >
               <Link
                 href={`/dashboard/tournaments/${tournamentId}/teams/${team.id}`}
@@ -54,11 +57,12 @@ export function TeamCards({ tournamentId, teams }: TeamCardsProps) {
                       {team.short_name.slice(0, 3)}
                     </div>
                     <div className="min-w-0">
-                      <CardTitle className="text-white text-base truncate">{team.name}</CardTitle>
-                      <CardDescription className="text-slate-400 truncate">
+                      <CardTitle className="text-foreground text-base truncate">{team.name}</CardTitle>
+                      <CardDescription className="text-muted-foreground truncate">
                         {team.captain_name
                           ? `Captain: ${team.captain_name}`
                           : team.short_name}
+                        {team.qr_slug ? ` · /t/${team.qr_slug}` : ''}
                       </CardDescription>
                     </div>
                   </div>
@@ -67,8 +71,8 @@ export function TeamCards({ tournamentId, teams }: TeamCardsProps) {
                       variant="outline"
                       className={
                         team.is_active
-                          ? 'border-green-600 text-green-400'
-                          : 'border-red-600 text-red-400'
+                          ? 'border-emerald-600 text-emerald-600'
+                          : 'border-red-600 text-primary'
                       }
                     >
                       {team.is_active ? 'Active' : 'Inactive'}
@@ -77,7 +81,7 @@ export function TeamCards({ tournamentId, teams }: TeamCardsProps) {
                       type="button"
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                      className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
                       aria-label={`Edit ${team.name}`}
                       onClick={(e) => {
                         e.preventDefault();
@@ -92,33 +96,39 @@ export function TeamCards({ tournamentId, teams }: TeamCardsProps) {
               </CardHeader>
               <CardContent className="relative z-10 pointer-events-none">
                 <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Initial Purse</span>
-                    <span className="font-medium text-white">
-                      {formatCurrency(team.initial_purse)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Spent</span>
-                    <span className="font-medium text-red-400">
-                      {formatCurrency(team.spent)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Remaining</span>
-                    <span className="font-medium text-green-400">
-                      {formatCurrency(team.remaining_purse)}
-                    </span>
-                  </div>
-                  <div className="h-px bg-slate-800" />
+                  {showPurse ? (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Initial Purse</span>
+                        <span className="font-medium text-foreground">
+                          {formatCurrency(team.initial_purse)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Spent</span>
+                        <span className="font-medium text-primary">
+                          {formatCurrency(team.spent)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Remaining</span>
+                        <span className="font-medium text-emerald-600">
+                          {formatCurrency(team.remaining_purse)}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Purse hidden for spectators</p>
+                  )}
+                  <div className="h-px bg-muted" />
                   <div className="flex justify-between text-sm gap-2">
-                    <span className="text-slate-400 shrink-0">Roster</span>
+                    <span className="text-muted-foreground shrink-0">Roster</span>
                     <span
-                      className={`font-medium text-right ${isFull ? 'text-green-400' : 'text-white'}`}
+                      className={`font-medium text-right ${isFull ? 'text-emerald-600' : 'text-foreground'}`}
                     >
                       {effectiveRoster}/{team.max_roster_size}
                       {team.captain_name ? (
-                        <span className="text-slate-500 font-normal hidden sm:inline">
+                        <span className="text-muted-foreground font-normal hidden sm:inline">
                           {' '}
                           ({team.roster_count} bought + captain)
                         </span>

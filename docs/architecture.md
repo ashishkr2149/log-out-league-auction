@@ -31,6 +31,9 @@ All state lives in **Supabase PostgreSQL** — there is no localStorage, in-memo
 3. **Immutable audit log** — all auction events are recorded in `auction_events`. Undo is a compensating action, not a delete.
 4. **Overlay credentials** — high-entropy tokens hashed with SHA-256. The raw token is shown once at creation; only the hash is stored.
 5. **Transactional sales** — selling a player updates the purchase, roster, player status, and auction state atomically via service-role client.
+6. **Person ≠ auth account ≠ role** — humans are `persons` (pre-provision by email/phone); login claims `auth_user_id`; tournament/platform roles and roster rows hang off `person_id`. Every person is a **Player** first; staff hats are additive. See [`person-identity.md`](./person-identity.md) (Phase 1.75).
+7. **Teams are global** — franchises exist outside tournaments; auction `teams` rows are entries. Search / My teams / QR; manage = creator + captain + manager. Captains identified by email/phone; **global captain** ≠ optional **tournament captain**. See [`global-teams.md`](./global-teams.md).
+8. **Match formats** — `tennis_ball` | `leather_ball` | `box_cricket`. Tournament and match stats never mix across formats. See [`match-formats.md`](./match-formats.md).
 
 ### Data Flow
 

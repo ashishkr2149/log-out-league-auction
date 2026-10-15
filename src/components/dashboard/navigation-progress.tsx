@@ -55,7 +55,7 @@ export function NavigationProgress() {
     >
       <div
         className={cn(
-          'h-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.65)] transition-[width] duration-500 ease-out',
+          'h-full bg-primary transition-[width] duration-500 ease-out',
           active ? 'w-[70%]' : 'w-0'
         )}
       />

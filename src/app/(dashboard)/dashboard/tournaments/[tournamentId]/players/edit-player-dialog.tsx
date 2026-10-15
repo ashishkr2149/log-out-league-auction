@@ -115,52 +115,52 @@ export function EditPlayerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-slate-800 bg-slate-900 max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="border-border bg-card max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-white">Edit Player</DialogTitle>
-          <DialogDescription className="text-slate-400">
+          <DialogTitle className="text-foreground">Edit Player</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Update details for {player.name}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Full Name *</Label>
-              <Input {...register('name')} className="border-slate-700 bg-slate-800 text-white" />
-              {errors.name && <p className="text-sm text-red-400">{errors.name.message}</p>}
+              <Label className="text-muted-foreground">Full Name *</Label>
+              <Input {...register('name')} className="border-border bg-muted text-foreground" />
+              {errors.name && <p className="text-sm text-primary">{errors.name.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Display Name *</Label>
+              <Label className="text-muted-foreground">Display Name *</Label>
               <Input
                 {...register('display_name')}
-                className="border-slate-700 bg-slate-800 text-white"
+                className="border-border bg-muted text-foreground"
               />
               {errors.display_name && (
-                <p className="text-sm text-red-400">{errors.display_name.message}</p>
+                <p className="text-sm text-primary">{errors.display_name.message}</p>
               )}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Jersey Number</Label>
+              <Label className="text-muted-foreground">Jersey Number</Label>
               <Input
                 {...register('jersey_number')}
-                className="border-slate-700 bg-slate-800 text-white"
+                className="border-border bg-muted text-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Role *</Label>
+              <Label className="text-muted-foreground">Role *</Label>
               <Select
                 value={watch('role')}
                 onValueChange={(v) => setValue('role', v as PlayerFormData['role'])}
               >
-                <SelectTrigger className="border-slate-700 bg-slate-800 text-white">
+                <SelectTrigger className="border-border bg-muted text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="border-slate-700 bg-slate-800">
+                <SelectContent className="border-border bg-muted">
                   {playerRoles.map((role) => (
-                    <SelectItem key={role} value={role} className="text-white">
+                    <SelectItem key={role} value={role} className="text-foreground">
                       {getRoleLabel(role)}
                     </SelectItem>
                   ))}
@@ -171,19 +171,19 @@ export function EditPlayerDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Batting Style</Label>
+              <Label className="text-muted-foreground">Batting Style</Label>
               <Select
                 value={watch('batting_style') ?? ''}
                 onValueChange={(v) =>
                   setValue('batting_style', (v || null) as PlayerFormData['batting_style'])
                 }
               >
-                <SelectTrigger className="border-slate-700 bg-slate-800 text-white">
+                <SelectTrigger className="border-border bg-muted text-foreground">
                   <SelectValue placeholder="Select..." />
                 </SelectTrigger>
-                <SelectContent className="border-slate-700 bg-slate-800">
+                <SelectContent className="border-border bg-muted">
                   {battingStyles.map((style) => (
-                    <SelectItem key={style} value={style} className="text-white">
+                    <SelectItem key={style} value={style} className="text-foreground">
                       {style
                         .split('-')
                         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -194,19 +194,19 @@ export function EditPlayerDialog({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Bowling Style</Label>
+              <Label className="text-muted-foreground">Bowling Style</Label>
               <Select
                 value={watch('bowling_style') ?? ''}
                 onValueChange={(v) =>
                   setValue('bowling_style', (v || null) as PlayerFormData['bowling_style'])
                 }
               >
-                <SelectTrigger className="border-slate-700 bg-slate-800 text-white">
+                <SelectTrigger className="border-border bg-muted text-foreground">
                   <SelectValue placeholder="Select..." />
                 </SelectTrigger>
-                <SelectContent className="border-slate-700 bg-slate-800">
+                <SelectContent className="border-border bg-muted">
                   {bowlingStyles.map((style) => (
-                    <SelectItem key={style} value={style} className="text-white">
+                    <SelectItem key={style} value={style} className="text-foreground">
                       {style
                         .split('-')
                         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -220,36 +220,36 @@ export function EditPlayerDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Base Price *</Label>
+              <Label className="text-muted-foreground">Base Price *</Label>
               <Input
                 type="number"
                 {...register('base_price', { valueAsNumber: true })}
-                className="border-slate-700 bg-slate-800 text-white"
+                className="border-border bg-muted text-foreground"
               />
               {errors.base_price && (
-                <p className="text-sm text-red-400">{errors.base_price.message}</p>
+                <p className="text-sm text-primary">{errors.base_price.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Category</Label>
-              <Input {...register('category')} className="border-slate-700 bg-slate-800 text-white" />
+              <Label className="text-muted-foreground">Category</Label>
+              <Input {...register('category')} className="border-border bg-muted text-foreground" />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-slate-300">Previous Team</Label>
+            <Label className="text-muted-foreground">Previous Team</Label>
             <Input
               {...register('previous_team')}
-              className="border-slate-700 bg-slate-800 text-white"
+              className="border-border bg-muted text-foreground"
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-slate-300">Bio</Label>
+            <Label className="text-muted-foreground">Bio</Label>
             <Textarea
               {...register('bio')}
               rows={2}
-              className="border-slate-700 bg-slate-800 text-white"
+              className="border-border bg-muted text-foreground"
             />
           </div>
 
@@ -257,7 +257,7 @@ export function EditPlayerDialog({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
@@ -266,7 +266,7 @@ export function EditPlayerDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="border-slate-700 text-slate-300"
+              className="border-border text-muted-foreground"
             >
               Cancel
             </Button>

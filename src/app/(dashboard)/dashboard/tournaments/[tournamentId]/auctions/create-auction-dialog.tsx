@@ -68,7 +68,7 @@ export function CreateAuctionDialog({ tournamentId, tournamentName }: CreateAuct
       <DialogTrigger
         render={
           <Button
-            className="bg-red-600 hover:bg-red-700 text-white size-9 sm:size-auto sm:h-10 sm:px-4"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground size-9 sm:size-auto sm:h-10 sm:px-4"
             aria-label="New Auction"
           />
         }
@@ -76,37 +76,37 @@ export function CreateAuctionDialog({ tournamentId, tournamentName }: CreateAuct
         <Plus className="h-4 w-4 sm:mr-2" />
         <span className="hidden sm:inline">New Auction</span>
       </DialogTrigger>
-      <DialogContent className="border-slate-800 bg-slate-900 max-w-md max-h-[85vh] overflow-y-auto">
+      <DialogContent className="border-border bg-card max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-white">Create New Auction</DialogTitle>
-          <DialogDescription className="text-slate-400">
+          <DialogTitle className="text-foreground">Create New Auction</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             For {tournamentName}. All registered players will be queued automatically.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label className="text-slate-300">Auction Name *</Label>
+            <Label className="text-muted-foreground">Auction Name *</Label>
             <Input
               {...register('name')}
               placeholder="e.g., Main Player Auction"
-              className="border-slate-700 bg-slate-800 text-white"
+              className="border-border bg-muted text-foreground"
             />
-            {errors.name && <p className="text-sm text-red-400">{errors.name.message}</p>}
+            {errors.name && <p className="text-sm text-primary">{errors.name.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Currency</Label>
+              <Label className="text-muted-foreground">Currency</Label>
               <Input
                 {...register('currency_code')}
-                className="border-slate-700 bg-slate-800 text-white"
+                className="border-border bg-muted text-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Bid Increment</Label>
+              <Label className="text-muted-foreground">Bid Increment</Label>
               <Input
                 type="number"
                 {...register('default_bid_increment', { valueAsNumber: true })}
-                className="border-slate-700 bg-slate-800 text-white"
+                className="border-border bg-muted text-foreground"
               />
             </div>
           </div>
@@ -114,7 +114,7 @@ export function CreateAuctionDialog({ tournamentId, tournamentName }: CreateAuct
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Auction
@@ -123,7 +123,7 @@ export function CreateAuctionDialog({ tournamentId, tournamentName }: CreateAuct
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              className="border-slate-700 text-slate-300"
+              className="border-border text-muted-foreground"
             >
               Cancel
             </Button>

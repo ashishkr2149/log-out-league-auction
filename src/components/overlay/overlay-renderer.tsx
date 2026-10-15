@@ -3,6 +3,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { OverlayPublicState, AuctionPhase } from '@/types/database';
 import { formatCurrency, getRoleLabel } from '@/lib/auction/validation';
+import { createClient } from '@/lib/supabase/client';
+import {
+  OVERLAY_STATE_EVENT,
+  auctionOverlayChannelName,
+} from '@/lib/overlay/channel';
 
 interface OverlayRendererProps {
   initialState: OverlayPublicState;
@@ -15,43 +20,84 @@ export function OverlayRenderer({ initialState, overlayToken, auctionId }: Overl
   const [connected, setConnected] = useState(true);
   const [stale, setStale] = useState(false);
   const lastUpdateRef = useRef<number>(Date.now());
+  const stateVersionRef = useRef(initialState.state_version);
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const animationPhaseRef = useRef<AuctionPhase>(initialState.phase);
   const [showAnimation, setShowAnimation] = useState(false);
 
-  // Fetch latest state from API
+  const applyState = useCallback((newState: OverlayPublicState) => {
+    if (newState.state_version < stateVersionRef.current) return;
+
+    if (newState.phase !== animationPhaseRef.current) {
+      if (newState.phase === 'sold' || newState.phase === 'unsold') {
+        setShowAnimation(true);
+        setTimeout(() => setShowAnimation(false), 2000);
+      }
+      animationPhaseRef.current = newState.phase;
+    }
+
+    stateVersionRef.current = newState.state_version;
+    setState(newState);
+    lastUpdateRef.current = Date.now();
+    setStale(false);
+    setConnected(true);
+  }, []);
+
+  // Fetch latest state from API (works for OBS without auth cookies)
   const fetchState = useCallback(async () => {
     try {
-      const res = await fetch(`/api/overlay?token=${overlayToken}`, {
+      const res = await fetch(`/api/overlay?token=${encodeURIComponent(overlayToken)}`, {
         cache: 'no-store',
       });
       if (res.ok) {
         const newState: OverlayPublicState = await res.json();
-        if (newState.state_version > state.state_version) {
-          // Detect phase change for animation
-          if (newState.phase !== animationPhaseRef.current) {
-            if (newState.phase === 'sold' || newState.phase === 'unsold') {
-              setShowAnimation(true);
-              setTimeout(() => setShowAnimation(false), 2000);
-            }
-            animationPhaseRef.current = newState.phase;
-          }
-          setState(newState);
-          lastUpdateRef.current = Date.now();
-          setStale(false);
-          setConnected(true);
-        }
+        applyState(newState);
       } else {
         setConnected(false);
       }
     } catch {
       setConnected(false);
     }
-  }, [overlayToken, state.state_version]);
+  }, [overlayToken, applyState]);
 
-  // Poll for updates (fallback for when realtime is unreliable)
+  // Realtime: broadcast from control panel + postgres changes (when permitted)
   useEffect(() => {
-    refreshIntervalRef.current = setInterval(fetchState, 2000);
+    const supabase = createClient();
+    const channel = supabase
+      .channel(auctionOverlayChannelName(auctionId), {
+        config: { broadcast: { self: true } },
+      })
+      .on('broadcast', { event: OVERLAY_STATE_EVENT }, () => {
+        void fetchState();
+      })
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'auctions',
+          filter: `id=eq.${auctionId}`,
+        },
+        () => {
+          void fetchState();
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setConnected(true);
+        }
+      });
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [auctionId, fetchState]);
+
+  // Polling fallback (OBS / blocked realtime)
+  useEffect(() => {
+    refreshIntervalRef.current = setInterval(() => {
+      void fetchState();
+    }, 1000);
     return () => {
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);

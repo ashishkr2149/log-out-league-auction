@@ -5,7 +5,11 @@ import { TeamWithStats } from '@/types/database';
  * Returns null if valid, or an error message string.
  */
 /** Captain fills one roster slot (not purchased via auction). */
-export function getCaptainSlot(team: { captain_name?: string | null }): number {
+export function getCaptainSlot(team: {
+  captain_name?: string | null;
+  captain_player_id?: string | null;
+}): number {
+  if (team.captain_player_id) return 1;
   return team.captain_name?.trim() ? 1 : 0;
 }
 
@@ -13,6 +17,7 @@ export function getCaptainSlot(team: { captain_name?: string | null }): number {
 export function getEffectiveRosterCount(team: {
   roster_count: number;
   captain_name?: string | null;
+  captain_player_id?: string | null;
 }): number {
   return team.roster_count + getCaptainSlot(team);
 }
@@ -22,6 +27,7 @@ export function getAuctionSlotsRemaining(team: {
   roster_count: number;
   max_roster_size: number;
   captain_name?: string | null;
+  captain_player_id?: string | null;
 }): number {
   return Math.max(0, team.max_roster_size - getEffectiveRosterCount(team));
 }
@@ -85,12 +91,13 @@ export function validateBidIncrement(
  * For larger INR values, use Indian number formatting.
  */
 export function formatCurrency(amount: number, currency: string = 'INR'): string {
+  // Fixed locale so SSR and client never diverge on grouping separators.
   if (currency === 'PTS' || currency === 'pts') {
-    return amount.toLocaleString() + ' pts';
+    return amount.toLocaleString('en-IN') + ' pts';
   }
   if (currency === 'INR') {
     if (amount < 1000) {
-      return '₹' + amount.toLocaleString();
+      return '₹' + amount.toLocaleString('en-IN');
     }
     return '₹' + formatIndianNumber(amount);
   }

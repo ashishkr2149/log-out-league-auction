@@ -95,7 +95,7 @@ export function ImportPlayersDialog({ tournamentId }: ImportPlayersDialogProps) 
         render={
           <Button
             variant="outline"
-            className="border-slate-700 text-slate-300 hover:bg-slate-800 size-9 sm:size-auto sm:h-10 sm:px-4"
+            className="border-border text-muted-foreground hover:bg-muted size-9 sm:size-auto sm:h-10 sm:px-4"
             aria-label="Import CSV"
           />
         }
@@ -103,10 +103,10 @@ export function ImportPlayersDialog({ tournamentId }: ImportPlayersDialogProps) 
         <Upload className="h-4 w-4 sm:mr-2" />
         <span className="hidden sm:inline">Import CSV</span>
       </DialogTrigger>
-      <DialogContent className="border-slate-800 bg-slate-900 max-w-3xl max-h-[85vh]">
+      <DialogContent className="border-border bg-card max-w-3xl max-h-[85vh]">
         <DialogHeader>
-          <DialogTitle className="text-white">Import Players from CSV</DialogTitle>
-          <DialogDescription className="text-slate-400">
+          <DialogTitle className="text-foreground">Import Players from CSV</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Upload a CSV file to bulk-import players
           </DialogDescription>
         </DialogHeader>
@@ -116,7 +116,7 @@ export function ImportPlayersDialog({ tournamentId }: ImportPlayersDialogProps) 
             <Button
               variant="outline"
               onClick={downloadTemplate}
-              className="border-slate-700 text-slate-300"
+              className="border-border text-muted-foreground"
             >
               <Download className="mr-2 h-4 w-4" />
               Download Template
@@ -131,7 +131,7 @@ export function ImportPlayersDialog({ tournamentId }: ImportPlayersDialogProps) 
             <Button
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
-              className="border-slate-700 text-slate-300"
+              className="border-border text-muted-foreground"
             >
               <Upload className="mr-2 h-4 w-4" />
               Choose File
@@ -139,13 +139,13 @@ export function ImportPlayersDialog({ tournamentId }: ImportPlayersDialogProps) 
           </div>
 
           {parseErrors.length > 0 && (
-            <div className="rounded-lg border border-red-800 bg-red-900/20 p-3">
-              <div className="flex items-center gap-2 text-red-400 mb-2">
+            <div className="rounded-lg border border-destructive/40 bg-red-900/20 p-3">
+              <div className="flex items-center gap-2 text-primary mb-2">
                 <AlertCircle className="h-4 w-4" />
                 <span className="text-sm font-medium">Parse Errors</span>
               </div>
               {parseErrors.map((err, i) => (
-                <p key={i} className="text-sm text-red-300">{err}</p>
+                <p key={i} className="text-sm text-destructive">{err}</p>
               ))}
             </div>
           )}
@@ -153,47 +153,47 @@ export function ImportPlayersDialog({ tournamentId }: ImportPlayersDialogProps) 
           {parsedData.length > 0 && (
             <>
               <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-green-400" />
-                <span className="text-sm text-slate-300">
+                <Check className="h-4 w-4 text-emerald-600" />
+                <span className="text-sm text-muted-foreground">
                   {parsedData.length} rows parsed. Review before importing.
                 </span>
               </div>
-              <ScrollArea className="h-64 rounded-lg border border-slate-800">
+              <ScrollArea className="h-64 rounded-lg border border-border">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-slate-800">
-                      <TableHead className="text-slate-400">#</TableHead>
-                      <TableHead className="text-slate-400">Name</TableHead>
-                      <TableHead className="text-slate-400">Role</TableHead>
-                      <TableHead className="text-slate-400">Base Price</TableHead>
-                      <TableHead className="text-slate-400">Category</TableHead>
+                    <TableRow className="border-border">
+                      <TableHead className="text-muted-foreground">#</TableHead>
+                      <TableHead className="text-muted-foreground">Name</TableHead>
+                      <TableHead className="text-muted-foreground">Role</TableHead>
+                      <TableHead className="text-muted-foreground">Base Price</TableHead>
+                      <TableHead className="text-muted-foreground">Category</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {parsedData.slice(0, 50).map((row, i) => (
-                      <TableRow key={i} className="border-slate-800">
-                        <TableCell className="text-slate-500">{i + 1}</TableCell>
-                        <TableCell className="text-white">{String(row.name ?? '')}</TableCell>
+                      <TableRow key={i} className="border-border">
+                        <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                        <TableCell className="text-foreground">{String(row.name ?? '')}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="border-slate-600 text-slate-300">
+                          <Badge variant="outline" className="border-border text-muted-foreground">
                             {String(row.role ?? 'other')}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-white">{String(row.base_price ?? '')}</TableCell>
-                        <TableCell className="text-slate-400">{String(row.category ?? '-')}</TableCell>
+                        <TableCell className="text-foreground">{String(row.base_price ?? '')}</TableCell>
+                        <TableCell className="text-muted-foreground">{String(row.category ?? '-')}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </ScrollArea>
               {parsedData.length > 50 && (
-                <p className="text-sm text-slate-500">Showing first 50 of {parsedData.length} rows</p>
+                <p className="text-sm text-muted-foreground">Showing first 50 of {parsedData.length} rows</p>
               )}
               <div className="flex gap-3">
                 <Button
                   onClick={handleImport}
                   disabled={isImporting}
-                  className="bg-red-600 hover:bg-red-700 text-white"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Import {parsedData.length} Players
@@ -201,7 +201,7 @@ export function ImportPlayersDialog({ tournamentId }: ImportPlayersDialogProps) 
                 <Button
                   variant="outline"
                   onClick={() => { setParsedData([]); setParseErrors([]); }}
-                  className="border-slate-700 text-slate-300"
+                  className="border-border text-muted-foreground"
                 >
                   Clear
                 </Button>

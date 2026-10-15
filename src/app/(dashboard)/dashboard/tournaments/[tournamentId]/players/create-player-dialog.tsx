@@ -64,7 +64,7 @@ export function CreatePlayerDialog({ tournamentId }: CreatePlayerDialogProps) {
       <DialogTrigger
         render={
           <Button
-            className="bg-red-600 hover:bg-red-700 text-white size-9 sm:size-auto sm:h-10 sm:px-4"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground size-9 sm:size-auto sm:h-10 sm:px-4"
             aria-label="Add Player"
           />
         }
@@ -72,56 +72,83 @@ export function CreatePlayerDialog({ tournamentId }: CreatePlayerDialogProps) {
         <Plus className="h-4 w-4 sm:mr-2" />
         <span className="hidden sm:inline">Add Player</span>
       </DialogTrigger>
-      <DialogContent className="border-slate-800 bg-slate-900 max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="border-border bg-card max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-white">Add New Player</DialogTitle>
-          <DialogDescription className="text-slate-400">
-            Add a player to this tournament
+          <DialogTitle className="text-foreground">Add New Player</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            Add a player to this tournament. Email links them to a platform identity they can claim later.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Full Name *</Label>
+              <Label className="text-muted-foreground">Full Name *</Label>
               <Input
                 {...register('name')}
                 placeholder="Full name"
-                className="border-slate-700 bg-slate-800 text-white"
+                className="border-border bg-muted text-foreground"
               />
-              {errors.name && <p className="text-sm text-red-400">{errors.name.message}</p>}
+              {errors.name && <p className="text-sm text-primary">{errors.name.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Display Name *</Label>
+              <Label className="text-muted-foreground">Display Name *</Label>
               <Input
                 {...register('display_name')}
                 placeholder="Short display name"
-                className="border-slate-700 bg-slate-800 text-white"
+                className="border-border bg-muted text-foreground"
               />
-              {errors.display_name && <p className="text-sm text-red-400">{errors.display_name.message}</p>}
+              {errors.display_name && <p className="text-sm text-primary">{errors.display_name.message}</p>}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Jersey Number</Label>
+              <Label className="text-muted-foreground">Email (claimable)</Label>
+              <Input
+                type="email"
+                {...register('contact_email')}
+                placeholder="player@example.com"
+                className="border-border bg-muted text-foreground"
+              />
+              {errors.contact_email && (
+                <p className="text-sm text-primary">{errors.contact_email.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Registers them on the platform; they claim by signing up with this email.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Phone (optional)</Label>
+              <Input
+                {...register('contact_phone')}
+                placeholder="+91…"
+                className="border-border bg-muted text-foreground"
+              />
+              <p className="text-xs text-muted-foreground">Stored for future mobile OTP claim.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Jersey Number</Label>
               <Input
                 {...register('jersey_number')}
                 placeholder="e.g., 7"
-                className="border-slate-700 bg-slate-800 text-white"
+                className="border-border bg-muted text-foreground"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Role *</Label>
+              <Label className="text-muted-foreground">Role *</Label>
               <Select
                 value={watch('role')}
                 onValueChange={(v) => setValue('role', v as PlayerFormData['role'])}
               >
-                <SelectTrigger className="border-slate-700 bg-slate-800 text-white">
+                <SelectTrigger className="border-border bg-muted text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="border-slate-700 bg-slate-800">
+                <SelectContent className="border-border bg-muted">
                   {playerRoles.map((role) => (
-                    <SelectItem key={role} value={role} className="text-white">
+                    <SelectItem key={role} value={role} className="text-foreground">
                       {getRoleLabel(role)}
                     </SelectItem>
                   ))}
@@ -132,17 +159,17 @@ export function CreatePlayerDialog({ tournamentId }: CreatePlayerDialogProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Batting Style</Label>
+              <Label className="text-muted-foreground">Batting Style</Label>
               <Select
                 value={watch('batting_style') ?? ''}
                 onValueChange={(v) => setValue('batting_style', v as PlayerFormData['batting_style'])}
               >
-                <SelectTrigger className="border-slate-700 bg-slate-800 text-white">
+                <SelectTrigger className="border-border bg-muted text-foreground">
                   <SelectValue placeholder="Select..." />
                 </SelectTrigger>
-                <SelectContent className="border-slate-700 bg-slate-800">
+                <SelectContent className="border-border bg-muted">
                   {battingStyles.map((style) => (
-                    <SelectItem key={style} value={style} className="text-white">
+                    <SelectItem key={style} value={style} className="text-foreground">
                       {style.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                     </SelectItem>
                   ))}
@@ -150,17 +177,17 @@ export function CreatePlayerDialog({ tournamentId }: CreatePlayerDialogProps) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Bowling Style</Label>
+              <Label className="text-muted-foreground">Bowling Style</Label>
               <Select
                 value={watch('bowling_style') ?? ''}
                 onValueChange={(v) => setValue('bowling_style', v as PlayerFormData['bowling_style'])}
               >
-                <SelectTrigger className="border-slate-700 bg-slate-800 text-white">
+                <SelectTrigger className="border-border bg-muted text-foreground">
                   <SelectValue placeholder="Select..." />
                 </SelectTrigger>
-                <SelectContent className="border-slate-700 bg-slate-800">
+                <SelectContent className="border-border bg-muted">
                   {bowlingStyles.map((style) => (
-                    <SelectItem key={style} value={style} className="text-white">
+                    <SelectItem key={style} value={style} className="text-foreground">
                       {style.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                     </SelectItem>
                   ))}
@@ -171,40 +198,40 @@ export function CreatePlayerDialog({ tournamentId }: CreatePlayerDialogProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Base Price *</Label>
+              <Label className="text-muted-foreground">Base Price *</Label>
               <Input
                 type="number"
                 {...register('base_price', { valueAsNumber: true })}
-                className="border-slate-700 bg-slate-800 text-white"
+                className="border-border bg-muted text-foreground"
               />
-              {errors.base_price && <p className="text-sm text-red-400">{errors.base_price.message}</p>}
+              {errors.base_price && <p className="text-sm text-primary">{errors.base_price.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Category</Label>
+              <Label className="text-muted-foreground">Category</Label>
               <Input
                 {...register('category')}
                 placeholder="e.g., A, B, C"
-                className="border-slate-700 bg-slate-800 text-white"
+                className="border-border bg-muted text-foreground"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-slate-300">Previous Team</Label>
+            <Label className="text-muted-foreground">Previous Team</Label>
             <Input
               {...register('previous_team')}
               placeholder="Previous team name"
-              className="border-slate-700 bg-slate-800 text-white"
+              className="border-border bg-muted text-foreground"
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-slate-300">Bio</Label>
+            <Label className="text-muted-foreground">Bio</Label>
             <Textarea
               {...register('bio')}
               placeholder="Short bio..."
               rows={2}
-              className="border-slate-700 bg-slate-800 text-white"
+              className="border-border bg-muted text-foreground"
             />
           </div>
 
@@ -212,7 +239,7 @@ export function CreatePlayerDialog({ tournamentId }: CreatePlayerDialogProps) {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Player
@@ -221,7 +248,7 @@ export function CreatePlayerDialog({ tournamentId }: CreatePlayerDialogProps) {
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              className="border-slate-700 text-slate-300"
+              className="border-border text-muted-foreground"
             >
               Cancel
             </Button>

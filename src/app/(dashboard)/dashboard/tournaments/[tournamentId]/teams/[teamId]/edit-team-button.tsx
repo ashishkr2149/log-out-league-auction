@@ -19,7 +19,7 @@ export function EditTeamButton({ tournamentId, team }: EditTeamButtonProps) {
       <Button
         type="button"
         variant="outline"
-        className="border-slate-700 text-slate-300 shrink-0 size-9 sm:size-auto sm:h-10 sm:px-4"
+        className="border-border text-muted-foreground shrink-0 size-9 sm:size-auto sm:h-10 sm:px-4"
         aria-label="Edit Team"
         onClick={() => setOpen(true)}
       >

@@ -85,76 +85,58 @@ export function EditTeamDialog({ tournamentId, team, open, onOpenChange }: EditT
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-slate-800 bg-slate-900 max-w-md max-h-[85vh] overflow-y-auto">
+      <DialogContent className="border-border bg-card max-w-md max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-white">Edit Team</DialogTitle>
-          <DialogDescription className="text-slate-400">
+          <DialogTitle className="text-foreground">Edit Team</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Update team details. Captain counts as one roster slot.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label className="text-slate-300">Team Name *</Label>
-            <Input {...register('name')} className="border-slate-700 bg-slate-800 text-white" />
-            {errors.name && <p className="text-sm text-red-400">{errors.name.message}</p>}
+            <Label className="text-muted-foreground">Team Name *</Label>
+            <Input {...register('name')} className="border-border bg-muted text-foreground" />
+            {errors.name && <p className="text-sm text-primary">{errors.name.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label className="text-slate-300">Short Name *</Label>
+            <Label className="text-muted-foreground">Short Name *</Label>
             <Input
               {...register('short_name')}
               maxLength={10}
-              className="border-slate-700 bg-slate-800 text-white"
+              className="border-border bg-muted text-foreground"
             />
-            {errors.short_name && <p className="text-sm text-red-400">{errors.short_name.message}</p>}
+            {errors.short_name && <p className="text-sm text-primary">{errors.short_name.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label className="text-slate-300">Captain Name *</Label>
+            <Label className="text-muted-foreground">Captain Name *</Label>
             <Input
               {...register('captain_name')}
               placeholder="Captain fills 1 roster slot"
-              className="border-slate-700 bg-slate-800 text-white"
+              className="border-border bg-muted text-foreground"
             />
             {errors.captain_name && (
-              <p className="text-sm text-red-400">{errors.captain_name.message}</p>
+              <p className="text-sm text-primary">{errors.captain_name.message}</p>
             )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-slate-300">Primary Color</Label>
-              <Input
-                type="color"
-                {...register('primary_color')}
-                className="h-10 w-full border-slate-700 bg-slate-800 cursor-pointer p-1"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-slate-300">Secondary Color</Label>
-              <Input
-                type="color"
-                {...register('secondary_color')}
-                className="h-10 w-full border-slate-700 bg-slate-800 cursor-pointer p-1"
-              />
-            </div>
-          </div>
           <div className="space-y-2">
-            <Label className="text-slate-300">Initial Purse *</Label>
+            <Label className="text-muted-foreground">Initial Purse *</Label>
             <Input
               type="number"
               {...register('initial_purse', { valueAsNumber: true })}
-              className="border-slate-700 bg-slate-800 text-white"
+              className="border-border bg-muted text-foreground"
             />
             {errors.initial_purse && (
-              <p className="text-sm text-red-400">{errors.initial_purse.message}</p>
+              <p className="text-sm text-primary">{errors.initial_purse.message}</p>
             )}
           </div>
           <div className="space-y-2">
-            <Label className="text-slate-300">Max Roster Size (includes captain)</Label>
+            <Label className="text-muted-foreground">Max Roster Size (includes captain)</Label>
             <Input
               type="number"
               {...register('max_roster_size', { valueAsNumber: true })}
-              className="border-slate-700 bg-slate-800 text-white"
+              className="border-border bg-muted text-foreground"
             />
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Example: 6 total = 1 captain + 5 auction buys
             </p>
           </div>
@@ -162,7 +144,7 @@ export function EditTeamDialog({ tournamentId, team, open, onOpenChange }: EditT
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
@@ -171,7 +153,7 @@ export function EditTeamDialog({ tournamentId, team, open, onOpenChange }: EditT
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="border-slate-700 text-slate-300"
+              className="border-border text-muted-foreground"
             >
               Cancel
             </Button>

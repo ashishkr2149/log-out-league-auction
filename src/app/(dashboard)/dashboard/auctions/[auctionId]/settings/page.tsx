@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/auction/validation';
-import { GenerateOverlayCredential } from '@/components/auction/generate-overlay-credential';
-
+import { OverlayCredentialsManager } from '@/components/auction/overlay-credentials-manager';
+import { BackLink } from '@/components/shell/back-link';
 
 interface Props {
   params: Promise<{ auctionId: string }>;
@@ -25,10 +25,11 @@ export default async function AuctionSettingsPage({ params }: Props) {
 
   if (!auction) notFound();
 
-  // Fetch overlay credentials
   const { data: credentials } = await supabase
     .from('overlay_credentials')
-    .select('*')
+    .select(
+      'id, label, is_active, expires_at, created_at, created_by, revoked_at, revoked_by'
+    )
     .eq('auction_id', auctionId)
     .order('created_at', { ascending: false });
 
@@ -37,85 +38,59 @@ export default async function AuctionSettingsPage({ params }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-        <Link href={`/dashboard/auctions/${auctionId}/control`}>
-          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white shrink-0">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
+        <BackLink fallbackHref={`/dashboard/auctions/${auctionId}/control`} />
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">Auction Settings</h1>
-          <p className="mt-1 text-slate-400 truncate">{auction.name}</p>
+          <h1 className="page-title">Auction Settings</h1>
+          <p className="mt-1 text-muted-foreground truncate">{auction.name}</p>
         </div>
       </div>
 
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-        <Card className="border-slate-800 bg-slate-900/80">
+        <Card className="border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-white">Auction Details</CardTitle>
+            <CardTitle className="text-foreground">Auction Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between gap-3">
-              <span className="text-slate-400 shrink-0">Name</span>
-              <span className="text-white text-right truncate">{auction.name}</span>
+              <span className="text-muted-foreground shrink-0">Name</span>
+              <span className="text-foreground text-right truncate">{auction.name}</span>
             </div>
             <div className="flex justify-between gap-3 items-center">
-              <span className="text-slate-400 shrink-0">Status</span>
-              <Badge variant="outline" className="border-slate-600 text-slate-300">
+              <span className="text-muted-foreground shrink-0">Status</span>
+              <Badge variant="outline" className="border-border text-muted-foreground">
                 {auction.status}
               </Badge>
             </div>
             <div className="flex justify-between gap-3">
-              <span className="text-slate-400 shrink-0">Currency</span>
-              <span className="text-white">{auction.currency_code}</span>
+              <span className="text-muted-foreground shrink-0">Currency</span>
+              <span className="text-foreground">{auction.currency_code}</span>
             </div>
             <div className="flex justify-between gap-3">
-              <span className="text-slate-400 shrink-0">Default Increment</span>
-              <span className="text-white">{formatCurrency(auction.default_bid_increment)}</span>
+              <span className="text-muted-foreground shrink-0">Default Increment</span>
+              <span className="text-foreground">
+                {formatCurrency(auction.default_bid_increment, auction.currency_code)}
+              </span>
             </div>
             <div className="flex justify-between gap-3">
-              <span className="text-slate-400 shrink-0">State Version</span>
-              <span className="text-white font-mono">{auction.state_version}</span>
+              <span className="text-muted-foreground shrink-0">State Version</span>
+              <span className="text-foreground font-mono">{auction.state_version}</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-slate-800 bg-slate-900/80">
+        <Card className="border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-white">Overlay Credentials</CardTitle>
-            <CardDescription className="text-slate-400">
-              Generate overlay URLs for OBS Browser Source
+            <CardTitle className="text-foreground">Overlay Credentials</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Generate OBS links, set expiry, and revoke with an audit trail
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <GenerateOverlayCredential auctionId={auctionId} />
-
-            {credentials && credentials.length > 0 && (
-              <div className="space-y-2 pt-2 border-t border-slate-800">
-                <p className="text-xs text-slate-500 uppercase tracking-wide">Existing credentials</p>
-                {credentials.map((cred) => (
-                  <div
-                    key={cred.id}
-                    className="rounded-lg border border-slate-800 bg-slate-800/40 p-3 space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-white">{cred.label}</span>
-                      <Badge
-                        variant="outline"
-                        className={cred.is_active ? 'border-green-600 text-green-400' : 'border-red-600 text-red-400'}
-                      >
-                        {cred.is_active ? 'Active' : 'Revoked'}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-slate-500">
-                      Created {new Date(cred.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-            <p className="text-xs text-slate-600 break-all">
-              Overlay URL format: {appUrl}/overlay/[token]
-            </p>
+          <CardContent>
+            <OverlayCredentialsManager
+              auctionId={auctionId}
+              credentials={credentials ?? []}
+              appUrl={appUrl}
+            />
           </CardContent>
         </Card>
       </div>

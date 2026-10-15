@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { canSeeTournamentPurse } from '@/lib/auth/permissions';
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { formatCurrency, getRoleLabel, getEffectiveRosterCount } from '@/lib/auction/validation';
+import { BackLink } from '@/components/shell/back-link';
 
 
 interface Props {
@@ -24,6 +26,8 @@ export default async function AuctionResultsPage({ params }: Props) {
     .single();
 
   if (!auction) notFound();
+
+  const showPurse = await canSeeTournamentPurse(auction.tournament_id);
 
   // Fetch all auction players with details
   const { data: auctionPlayers } = await supabase
@@ -83,39 +87,35 @@ export default async function AuctionResultsPage({ params }: Props) {
       shortLabel: 'Players',
       label: 'Total Players',
       value: String(auctionPlayers?.length ?? 0),
-      color: 'text-white',
+      color: 'text-foreground',
     },
     {
       shortLabel: 'Sold',
       label: 'Players Sold',
       value: String(soldPlayers.length),
-      color: 'text-green-400',
+      color: 'text-emerald-600',
     },
     {
       shortLabel: 'Spent',
       label: 'Total Spending',
       value: money(totalSpending),
-      color: 'text-white',
+      color: 'text-foreground',
     },
     {
       shortLabel: 'Top',
       label: 'Highest Price',
       value: money(highestPrice),
-      color: 'text-yellow-400',
+      color: 'text-amber-600',
     },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-        <Link href={`/dashboard/auctions/${auctionId}/control`}>
-          <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white shrink-0">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
+        <BackLink fallbackHref={`/dashboard/auctions/${auctionId}/control`} />
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">Auction Results</h1>
-          <p className="mt-1 text-slate-400 truncate">
+          <h1 className="page-title">Auction Results</h1>
+          <p className="mt-1 text-muted-foreground truncate">
             {auction.name}
             {tournament?.name ? ` · ${tournament.name}` : ''}
           </p>
@@ -125,9 +125,9 @@ export default async function AuctionResultsPage({ params }: Props) {
       {/* Summary Stats — 4-up on all viewports */}
       <div className="grid grid-cols-4 gap-2 sm:gap-3">
         {summaryStats.map((stat) => (
-          <Card key={stat.label} className="border-slate-800 bg-slate-900/80">
+          <Card key={stat.label} className="border-border bg-card">
             <CardContent className="px-1.5 py-3 sm:p-4 text-center sm:text-left">
-              <p className="text-[10px] sm:text-xs text-slate-400 truncate">
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                 <span className="sm:hidden">{stat.shortLabel}</span>
                 <span className="hidden sm:inline">{stat.label}</span>
               </p>
@@ -140,9 +140,9 @@ export default async function AuctionResultsPage({ params }: Props) {
       </div>
 
       {/* Team Summary */}
-      <Card className="border-slate-800 bg-slate-900/80">
+      <Card className="border-border bg-card">
         <CardHeader className="pb-3">
-          <CardTitle className="text-white">Team Summary</CardTitle>
+          <CardTitle className="text-foreground">Team Summary</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="md:hidden divide-y divide-slate-800">
@@ -158,29 +158,33 @@ export default async function AuctionResultsPage({ params }: Props) {
                       {team.short_name.slice(0, 2)}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium text-white truncate">{team.name}</p>
-                      <p className="text-xs text-slate-500 truncate">
+                      <p className="font-medium text-foreground truncate">{team.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">
                         {team.captain_name ? `C: ${team.captain_name}` : 'No captain'}
                       </p>
                     </div>
-                    <p className="ml-auto text-sm font-bold text-green-400 shrink-0">
-                      {money(team.remaining_purse)}
-                    </p>
+                    {showPurse ? (
+                      <p className="ml-auto text-sm font-bold text-emerald-600 shrink-0">
+                        {money(team.remaining_purse)}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-xs pl-11">
                     <div>
-                      <p className="text-slate-500">Spent</p>
-                      <p className="text-red-400 font-medium">{money(team.spent)}</p>
+                      <p className="text-muted-foreground">Spent</p>
+                      <p className="text-primary font-medium">
+                        {showPurse ? money(team.spent) : '—'}
+                      </p>
                     </div>
                     <div>
-                      <p className="text-slate-500">Roster</p>
-                      <p className="text-white font-medium">
+                      <p className="text-muted-foreground">Roster</p>
+                      <p className="text-foreground font-medium">
                         {effective}/{team.max_roster_size}
                       </p>
                     </div>
                     <div>
-                      <p className="text-slate-500">Left</p>
-                      <p className="text-slate-300 font-medium">
+                      <p className="text-muted-foreground">Left</p>
+                      <p className="text-muted-foreground font-medium">
                         {Math.max(0, team.max_roster_size - effective)}
                       </p>
                     </div>
@@ -193,19 +197,23 @@ export default async function AuctionResultsPage({ params }: Props) {
           <div className="hidden md:block overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-slate-800">
-                  <TableHead className="text-slate-400">Team</TableHead>
-                  <TableHead className="text-slate-400">Captain</TableHead>
-                  <TableHead className="text-slate-400">Initial Purse</TableHead>
-                  <TableHead className="text-slate-400">Spent</TableHead>
-                  <TableHead className="text-slate-400">Remaining</TableHead>
-                  <TableHead className="text-slate-400">Players</TableHead>
-                  <TableHead className="text-slate-400">Slots Left</TableHead>
+                <TableRow className="border-border">
+                  <TableHead className="text-muted-foreground">Team</TableHead>
+                  <TableHead className="text-muted-foreground">Captain</TableHead>
+                  {showPurse && (
+                    <>
+                      <TableHead className="text-muted-foreground">Initial Purse</TableHead>
+                      <TableHead className="text-muted-foreground">Spent</TableHead>
+                      <TableHead className="text-muted-foreground">Remaining</TableHead>
+                    </>
+                  )}
+                  <TableHead className="text-muted-foreground">Players</TableHead>
+                  <TableHead className="text-muted-foreground">Slots Left</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {teamStats.map((team) => (
-                  <TableRow key={team.id} className="border-slate-800">
+                  <TableRow key={team.id} className="border-border">
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <div
@@ -217,22 +225,26 @@ export default async function AuctionResultsPage({ params }: Props) {
                         >
                           {team.short_name.slice(0, 2)}
                         </div>
-                        <span className="text-white font-medium">{team.name}</span>
+                        <span className="text-foreground font-medium">{team.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-slate-300">{team.captain_name ?? '—'}</TableCell>
-                    <TableCell className="text-white">{money(team.initial_purse)}</TableCell>
-                    <TableCell className="text-red-400">{money(team.spent)}</TableCell>
-                    <TableCell className="text-green-400 font-bold">
-                      {money(team.remaining_purse)}
-                    </TableCell>
-                    <TableCell className="text-white">
+                    <TableCell className="text-muted-foreground">{team.captain_name ?? '—'}</TableCell>
+                    {showPurse && (
+                      <>
+                        <TableCell className="text-foreground">{money(team.initial_purse)}</TableCell>
+                        <TableCell className="text-primary">{money(team.spent)}</TableCell>
+                        <TableCell className="text-emerald-600 font-bold">
+                          {money(team.remaining_purse)}
+                        </TableCell>
+                      </>
+                    )}
+                    <TableCell className="text-foreground">
                       {getEffectiveRosterCount(team)}
-                      <span className="text-slate-500 text-xs ml-1">
+                      <span className="text-muted-foreground text-xs ml-1">
                         ({team.roster_count} bought{team.captain_name ? ' + C' : ''})
                       </span>
                     </TableCell>
-                    <TableCell className="text-slate-400">
+                    <TableCell className="text-muted-foreground">
                       {Math.max(0, team.max_roster_size - getEffectiveRosterCount(team))}
                     </TableCell>
                   </TableRow>
@@ -244,20 +256,20 @@ export default async function AuctionResultsPage({ params }: Props) {
       </Card>
 
       {/* Sold Players */}
-      <Card className="border-slate-800 bg-slate-900/80">
+      <Card className="border-border bg-card">
         <CardHeader className="pb-3">
-          <CardTitle className="text-white">Sold Players ({soldPlayers.length})</CardTitle>
+          <CardTitle className="text-foreground">Sold Players ({soldPlayers.length})</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="md:hidden divide-y divide-slate-800">
             {soldPlayers.map((ap, i) => (
               <div key={ap.id} className="flex items-center justify-between gap-3 px-4 py-3">
                 <div className="min-w-0">
-                  <p className="text-white font-medium truncate">
-                    <span className="text-slate-500 text-xs mr-2">{i + 1}</span>
+                  <p className="text-foreground font-medium truncate">
+                    <span className="text-muted-foreground text-xs mr-2">{i + 1}</span>
                     {ap.player?.display_name}
                   </p>
-                  <p className="text-xs text-slate-500 mt-0.5 truncate">
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">
                     {getRoleLabel(ap.player?.role ?? 'other')}
                     {' · '}
                     <span
@@ -270,7 +282,7 @@ export default async function AuctionResultsPage({ params }: Props) {
                     </span>
                   </p>
                 </div>
-                <span className="text-green-400 font-bold font-mono text-sm shrink-0">
+                <span className="text-emerald-600 font-bold font-mono text-sm shrink-0">
                   {money(ap.final_sale_price ?? 0)}
                 </span>
               </div>
@@ -280,31 +292,31 @@ export default async function AuctionResultsPage({ params }: Props) {
           <div className="hidden md:block overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="border-slate-800">
-                  <TableHead className="text-slate-400">#</TableHead>
-                  <TableHead className="text-slate-400">Player</TableHead>
-                  <TableHead className="text-slate-400">Role</TableHead>
-                  <TableHead className="text-slate-400">Base Price</TableHead>
-                  <TableHead className="text-slate-400">Sale Price</TableHead>
-                  <TableHead className="text-slate-400">Team</TableHead>
+                <TableRow className="border-border">
+                  <TableHead className="text-muted-foreground">#</TableHead>
+                  <TableHead className="text-muted-foreground">Player</TableHead>
+                  <TableHead className="text-muted-foreground">Role</TableHead>
+                  <TableHead className="text-muted-foreground">Base Price</TableHead>
+                  <TableHead className="text-muted-foreground">Sale Price</TableHead>
+                  <TableHead className="text-muted-foreground">Team</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {soldPlayers.map((ap, i) => (
-                  <TableRow key={ap.id} className="border-slate-800">
-                    <TableCell className="text-slate-500">{i + 1}</TableCell>
-                    <TableCell className="text-white font-medium">
+                  <TableRow key={ap.id} className="border-border">
+                    <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                    <TableCell className="text-foreground font-medium">
                       {ap.player?.display_name}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="border-slate-600 text-slate-300">
+                      <Badge variant="outline" className="border-border text-muted-foreground">
                         {getRoleLabel(ap.player?.role ?? 'other')}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-slate-400 font-mono text-sm">
+                    <TableCell className="text-muted-foreground font-mono text-sm">
                       {money(ap.base_price)}
                     </TableCell>
-                    <TableCell className="text-green-400 font-bold font-mono">
+                    <TableCell className="text-emerald-600 font-bold font-mono">
                       {money(ap.final_sale_price ?? 0)}
                     </TableCell>
                     <TableCell>
@@ -328,29 +340,29 @@ export default async function AuctionResultsPage({ params }: Props) {
 
       {/* Unsold Players */}
       {unsoldPlayers.length > 0 && (
-        <Card className="border-slate-800 bg-slate-900/80">
+        <Card className="border-border bg-card">
           <CardHeader>
-            <CardTitle className="text-white">Unsold Players ({unsoldPlayers.length})</CardTitle>
+            <CardTitle className="text-foreground">Unsold Players ({unsoldPlayers.length})</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
               <TableHeader>
-                <TableRow className="border-slate-800">
-                  <TableHead className="text-slate-400">Player</TableHead>
-                  <TableHead className="text-slate-400">Role</TableHead>
-                  <TableHead className="text-slate-400">Base Price</TableHead>
+                <TableRow className="border-border">
+                  <TableHead className="text-muted-foreground">Player</TableHead>
+                  <TableHead className="text-muted-foreground">Role</TableHead>
+                  <TableHead className="text-muted-foreground">Base Price</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {unsoldPlayers.map((ap) => (
-                  <TableRow key={ap.id} className="border-slate-800">
-                    <TableCell className="text-white">{ap.player?.display_name}</TableCell>
+                  <TableRow key={ap.id} className="border-border">
+                    <TableCell className="text-foreground">{ap.player?.display_name}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="border-slate-600 text-slate-300">
+                      <Badge variant="outline" className="border-border text-muted-foreground">
                         {getRoleLabel(ap.player?.role ?? 'other')}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-slate-400 font-mono text-sm">
+                    <TableCell className="text-muted-foreground font-mono text-sm">
                       {money(ap.base_price)}
                     </TableCell>
                   </TableRow>

@@ -52,7 +52,7 @@ export function GenerateOverlayCredential({ auctionId }: GenerateOverlayCredenti
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="overlay-label" className="text-slate-300">
+        <Label htmlFor="overlay-label" className="text-muted-foreground">
           Credential Label
         </Label>
         <Input
@@ -60,14 +60,14 @@ export function GenerateOverlayCredential({ auctionId }: GenerateOverlayCredenti
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           placeholder="OBS Browser Source"
-          className="border-slate-700 bg-slate-800 text-white"
+          className="border-border bg-muted text-foreground"
         />
       </div>
 
       <Button
         onClick={handleGenerate}
         disabled={isGenerating}
-        className="w-full bg-red-600 hover:bg-red-700 text-white"
+        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
       >
         {isGenerating ? (
           <>
@@ -85,7 +85,7 @@ export function GenerateOverlayCredential({ auctionId }: GenerateOverlayCredenti
             Copy this URL now. The raw token is only shown once for security.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-            <code className="flex-1 min-w-0 rounded bg-slate-900 px-3 py-2 text-xs text-slate-200 font-mono break-all">
+            <code className="flex-1 min-w-0 rounded bg-card px-3 py-2 text-xs text-slate-200 font-mono break-all">
               {revealed ? overlayUrl : overlayUrl.replace(/\/overlay\/.+/, '/overlay/••••••••')}
             </code>
             <div className="flex gap-2 shrink-0">
@@ -93,7 +93,7 @@ export function GenerateOverlayCredential({ auctionId }: GenerateOverlayCredenti
                 type="button"
                 variant="outline"
                 size="icon"
-                className="border-slate-700 text-slate-300"
+                className="border-border text-muted-foreground"
                 onClick={() => setRevealed((v) => !v)}
                 aria-label={revealed ? 'Hide URL' : 'Show URL'}
               >
@@ -103,11 +103,11 @@ export function GenerateOverlayCredential({ auctionId }: GenerateOverlayCredenti
                 type="button"
                 variant="outline"
                 size="icon"
-                className="border-slate-700 text-slate-300"
+                className="border-border text-muted-foreground"
                 onClick={handleCopy}
                 aria-label="Copy URL"
               >
-                {copied ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
+                {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
           </div>
